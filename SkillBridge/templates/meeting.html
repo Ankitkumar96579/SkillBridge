@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block title %}Meeting - {{ session_info.topic or 'Session' }}{% endblock %}
+{% block header %}Live Session{% endblock %}
+
+{% block content %}
+<style>
+    .meeting-container {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 160px);
+        border-radius: 16px;
+        overflow: hidden;
+        background: var(--surface);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        border: 1px solid var(--border);
+    }
+
+    .meeting-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background: linear-gradient(135deg, rgba(79,70,229,0.08), rgba(99,102,241,0.04));
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+    }
+
+    .meeting-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .meeting-info .live-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: #EF4444;
+        color: white;
+        padding: 0.3rem 0.75rem;
+        border-radius: 2rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .meeting-info .live-badge .dot {
+        width: 8px;
+        height: 8px;
+        background: white;
+        border-radius: 50%;
+        animation: livePulse 1.5s infinite;
+    }
+    @keyframes livePulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+
+    .meeting-details h4 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    .meeting-details p {
+        margin: 0;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .meeting-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .meeting-actions .btn-meeting {
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        border: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    .btn-meeting.btn-complete {
+        background: linear-gradient(135deg, #10B981, #059669);
+        color: white;
+    }
+    .btn-meeting.btn-complete:hover {
+        box-shadow: 0 4px 16px rgba(16,185,129,0.4);
+        transform: translateY(-1px);
+    }
+    .btn-meeting.btn-end {
+        background: rgba(239,68,68,0.1);
+        color: #EF4444;
+        border: 1px solid rgba(239,68,68,0.2);
+    }
+    .btn-meeting.btn-end:hover {
+        background: #EF4444;
+        color: white;
+    }
+
+    .meeting-frame {
+        flex: 1;
+        border: none;
+        width: 100%;
+    }
+
+    .meeting-timer {
+        font-variant-numeric: tabular-nums;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        background: var(--background);
+        padding: 0.3rem 0.75rem;
+        border-radius: 2rem;
+    }
+
+    .role-badge {
+        padding: 0.25rem 0.6rem;
+        border-radius: 2rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .role-badge.teaching {
+        background: rgba(16,185,129,0.1);
+        color: #059669;
+    }
+    .role-badge.learning {
+        background: rgba(59,130,246,0.1);
+        color: #3B82F6;
+    }
+</style>
+
+<div class="meeting-container">
+    <!-- Header -->
+    <div class="meeting-header">
+        <div class="meeting-info">
+            <div class="live-badge"><span class="dot"></span> LIVE</div>
+            <div class="meeting-details">
+                <h4>{{ session_info.topic or 'General Session' }} with {{ peer_name }}</h4>
+                <p>
+                    <span class="role-badge {{ 'teaching' if my_role == 'Teaching' else 'learning' }}">
+                        <i class="fa {{ 'fa-chalkboard-teacher' if my_role == 'Teaching' else 'fa-user-graduate' }} me-1"></i>{{ my_role }}
+                    </span>
+                    <span class="meeting-timer ms-2" id="meetingTimer">00:00:00</span>
+                </p>
+            </div>
+        </div>
+        <div class="meeting-actions">
+            {% if session_info.status == 'Scheduled' %}
+            <a href="/complete_session/{{ session_id }}" class="btn-meeting btn-complete" onclick="return confirm('Mark this session as completed?')">
+                <i class="fa fa-check-circle"></i> Complete Session
+            </a>
+            {% endif %}
+            <a href="/sessions" class="btn-meeting btn-end">
+                <i class="fa fa-sign-out-alt"></i> Leave
+            </a>
+        </div>
+    </div>
+
+    <!-- Embedded Jitsi Meeting -->
+    <div id="jitsi-container" style="flex: 1; width: 100%;"></div>
+</div>
+
+<!-- Jitsi External API -->
+<script src="https://meet.jit.si/external_api.js"></script>
+<script>
+    // Initialize Jitsi Meet
+    const domain = 'meet.jit.si';
+    const options = {
+        roomName: '{{ room_name }}',
+        parentNode: document.getElementById('jitsi-container'),
+        userInfo: {
+            displayName: '{{ user_name }}'
+        },
+        configOverwrite: {
+            startWithAudioMuted: false,
+            startWithVideoMuted: false,
+            prejoinConfig: { enabled: false },
+            disableDeepLinking: true,
+            toolbarButtons: [
+                'camera', 'chat', 'closedcaptions', 'desktop',
+                'fullscreen', 'hangup', 'microphone', 'participants-pane',
+                'raisehand', 'select-background', 'settings', 'tileview',
+                'toggle-camera', 'whiteboard'
+            ]
+        },
+        interfaceConfigOverwrite: {
+            SHOW_JITSI_WATERMARK: false,
+            SHOW_WATERMARK_FOR_GUESTS: false,
+            TOOLBAR_ALWAYS_VISIBLE: true,
+            DISABLE_JOIN_LEAVE_NOTIFICATIONS: false,
+            DEFAULT_BACKGROUND: '#1a1a2e',
+            MOBILE_APP_PROMO: false
+        }
+    };
+
+    const api = new JitsiMeetExternalAPI(domain, options);
+
+    // Meeting timer
+    let seconds = 0;
+    const timerEl = document.getElementById('meetingTimer');
+    setInterval(() => {
+        seconds++;
+        const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+        const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+        const s = String(seconds % 60).padStart(2, '0');
+        timerEl.textContent = `${h}:${m}:${s}`;
+    }, 1000);
+
+    // When user hangs up via Jitsi button, redirect back
+    api.addEventListener('readyToClose', () => {
+        window.location.href = '/sessions';
+    });
+</script>
+{% endblock %}

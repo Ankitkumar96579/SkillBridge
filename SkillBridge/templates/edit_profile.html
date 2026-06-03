@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile{% endblock %}
+{% block header %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="section motion-card" style="max-width: 800px; margin: 0 auto; padding: 2.5rem;">
+    <h3 class="text-gradient-vibrant" style="font-size: 1.5rem; margin-bottom: 2rem;">Update Your Information</h3>
+    
+    <form action="/edit_profile" method="POST" enctype="multipart/form-data" autocomplete="off">
+        
+        <!-- Profile Picture Section -->
+        <div style="display: flex; align-items: center; gap: 2rem; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border);">
+            <div style="position: relative;">
+                <img src="{{ user.profile_pic | avatar_url(user.name) }}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-md);">
+                <div style="position: absolute; bottom: 0; right: 0; background: var(--primary); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid white; box-shadow: var(--shadow-sm);">
+                    <i class="fa fa-camera" style="font-size: 0.8rem;"></i>
+                </div>
+            </div>
+            <div style="flex: 1;">
+                <label style="display: block; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">Profile Picture</label>
+                <input type="file" name="pic" accept="image/*" style="font-size: 0.9rem; padding: 0.5rem; background: var(--background); border: 1px dashed var(--border); border-radius: var(--border-radius-sm); width: 100%;">
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Upload a new avatar. Max size 2MB.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6">
+            <!-- Name -->
+            <div>
+                <label style="display: block; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.9rem;">Full Name</label>
+                <input type="text" name="name" value="{{ user.name }}" required>
+            </div>
+
+            <!-- Email -->
+            <div>
+                <label style="display: block; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.9rem;">Email Address</label>
+                <input type="email" name="email" value="{{ user.email }}" required>
+            </div>
+
+            <!-- Profession -->
+            <div>
+                <label style="display: block; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.9rem;">Profession / Headline</label>
+                <input type="text" name="profession" value="{{ user.profession or '' }}" placeholder="e.g. Software Engineer at Tech Co.">
+            </div>
+
+            <!-- Education -->
+            <div>
+                <label style="display: block; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.9rem;">Education</label>
+                <input type="text" name="education" value="{{ user.education or '' }}" placeholder="e.g. B.S. in Computer Science">
+            </div>
+
+            <!-- Location -->
+            <div>
+                <label style="display: block; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.9rem;">Location (City, Country)</label>
+                <input type="text" name="location" value="{{ user.location or '' }}" placeholder="e.g. San Francisco, CA">
+            </div>
+
+            <!-- Language -->
+            <div>
+                <label style="display: block; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.9rem;">Languages</label>
+                <select name="language" multiple style="margin-bottom: 0; min-height: 120px;">
+                    <option value="English" {% if 'English' in (user.language or '') %}selected{% endif %}>English</option>
+                    <option value="Hindi" {% if 'Hindi' in (user.language or '') %}selected{% endif %}>Hindi</option>
+                    <option value="Bengali" {% if 'Bengali' in (user.language or '') %}selected{% endif %}>Bengali</option>
+                    <option value="Telugu" {% if 'Telugu' in (user.language or '') %}selected{% endif %}>Telugu</option>
+                    <option value="Marathi" {% if 'Marathi' in (user.language or '') %}selected{% endif %}>Marathi</option>
+                    <option value="Tamil" {% if 'Tamil' in (user.language or '') %}selected{% endif %}>Tamil</option>
+                    <option value="Urdu" {% if 'Urdu' in (user.language or '') %}selected{% endif %}>Urdu</option>
+                    <option value="Gujarati" {% if 'Gujarati' in (user.language or '') %}selected{% endif %}>Gujarati</option>
+                    <option value="Malayalam" {% if 'Malayalam' in (user.language or '') %}selected{% endif %}>Malayalam</option>
+                    <option value="Kannada" {% if 'Kannada' in (user.language or '') %}selected{% endif %}>Kannada</option>
+                    <option value="Odia" {% if 'Odia' in (user.language or '') %}selected{% endif %}>Odia</option>
+                    <option value="Punjabi" {% if 'Punjabi' in (user.language or '') %}selected{% endif %}>Punjabi</option>
+                    <option value="Assamese" {% if 'Assamese' in (user.language or '') %}selected{% endif %}>Assamese</option>
+                    <option value="Maithili" {% if 'Maithili' in (user.language or '') %}selected{% endif %}>Maithili</option>
+                    <option value="Spanish" {% if 'Spanish' in (user.language or '') %}selected{% endif %}>Spanish</option>
+                    <option value="French" {% if 'French' in (user.language or '') %}selected{% endif %}>French</option>
+                    <option value="German" {% if 'German' in (user.language or '') %}selected{% endif %}>German</option>
+                    <option value="Mandarin" {% if 'Mandarin' in (user.language or '') %}selected{% endif %}>Mandarin</option>
+                    <option value="Other" {% if 'Other' in (user.language or '') %}selected{% endif %}>Other</option>
+                </select>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem; margin-bottom: 0;">Hold Ctrl (Windows) or Command (Mac) to select multiple</p>
+            </div>
+
+            <!-- Timezone -->
+            <div>
+                <label style="display: block; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.9rem;">Timezone</label>
+                <select name="timezone" style="margin-bottom: 0;">
+                    <option value="UTC-8 (PST)" {% if user.timezone == 'UTC-8 (PST)' %}selected{% endif %}>UTC-8 (Pacific Time)</option>
+                    <option value="UTC-5 (EST)" {% if user.timezone == 'UTC-5 (EST)' %}selected{% endif %}>UTC-5 (Eastern Time)</option>
+                    <option value="UTC+0 (GMT)" {% if user.timezone == 'UTC+0 (GMT)' %}selected{% endif %}>UTC+0 (London / GMT)</option>
+                    <option value="UTC+1 (CET)" {% if user.timezone == 'UTC+1 (CET)' %}selected{% endif %}>UTC+1 (Central Europe)</option>
+                    <option value="UTC+5:30 (IST)" {% if user.timezone == 'UTC+5:30 (IST)' %}selected{% endif %}>UTC+5:30 (Indian Standard Time)</option>
+                    <option value="UTC+8 (CST)" {% if user.timezone == 'UTC+8 (CST)' %}selected{% endif %}>UTC+8 (China / Singapore)</option>
+                    <option value="UTC+9 (JST)" {% if user.timezone == 'UTC+9 (JST)' %}selected{% endif %}>UTC+9 (Japan)</option>
+                </select>
+            </div>
+            
+            <!-- Skill Level -->
+            <div style="grid-column: span 2;">
+                <label style="display: block; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.9rem;">Overall Skill Level</label>
+                <div style="display: flex; gap: 1rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="radio" name="skill_level" value="Beginner" {% if user.skill_level == 'Beginner' or not user.skill_level %}checked{% endif %}> Beginner
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="radio" name="skill_level" value="Intermediate" {% if user.skill_level == 'Intermediate' %}checked{% endif %}> Intermediate
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="radio" name="skill_level" value="Expert" {% if user.skill_level == 'Expert' %}checked{% endif %}> Expert
+                    </label>
+                </div>
+            </div>
+
+            <!-- Bio -->
+            <div style="grid-column: span 2;">
+                <label style="display: block; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; font-size: 0.9rem;">About Me (Bio)</label>
+                <textarea name="bio" rows="4" placeholder="Tell others a bit about yourself, what you want to learn, and what you can teach..." style="resize: vertical;">{{ user.bio or '' }}</textarea>
+            </div>
+        </div>
+
+        <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem; align-items: center;">
+            <a href="/dashboard" style="text-decoration: none; padding: 0.75rem 1.5rem; border-radius: 8px; background: transparent; color: var(--text-secondary); border: 1px solid var(--border); font-weight: 600; font-size: 0.95rem; transition: all 0.2s;">Cancel</a>
+            <button type="submit" style="padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 700;">Save Changes <i class="fa fa-check ms-1"></i></button>
+        </div>
+
+    </form>
+</div>
+{% endblock %}

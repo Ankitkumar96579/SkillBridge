@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Wallet{% endblock %}
+{% block header %}Credit Wallet{% endblock %}
+
+{% block content %}
+<div class="row g-4" style="max-width: 1000px; margin: 0 auto;">
+    
+    <!-- Balance Card -->
+    <div class="col-lg-5">
+        <div class="section motion-card h-100 d-flex flex-column justify-content-center align-items-center" style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.9) 0%, rgba(49, 46, 129, 0.95) 100%); color: white; margin-bottom: 0; padding: 4rem 2rem; border-radius: var(--border-radius-lg); position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(49, 46, 129, 0.4);">
+            <!-- Subtle Glow Overlay -->
+            <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%); pointer-events: none;"></div>
+
+            <div style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.9rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 1.5rem; backdrop-filter: blur(10px); display: flex; align-items: center; gap: 0.5rem; border: 1px solid rgba(255,255,255,0.2);">
+                <i class="fa fa-wallet"></i> Current Balance
+            </div>
+            
+            <p id="wallet-balance-value" style="font-size: 5rem; font-weight: 900; line-height: 1; margin: 0; text-shadow: 0 4px 15px rgba(0,0,0,0.3); letter-spacing: -2px;">{{ credits }}</p>
+            
+            <p style="color: rgba(255,255,255,0.7); margin-top: 1.5rem; font-size: 1rem; text-align: center; max-width: 80%;">
+                Earn credits by teaching skills.<br>Spend credits to learn from others.
+            </p>
+        </div>
+    </div>
+
+    <!-- Transaction List -->
+    <div class="col-lg-7">
+        <div class="section motion-card d-flex flex-column" style="margin-bottom: 0; overflow-y: auto; max-height: 500px; padding: 0; border-radius: var(--border-radius-lg);">
+            <div style="padding: 1.5rem 2rem; position: sticky; top: 0; background: var(--surface); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); z-index: 10;">
+                <h3 class="d-flex align-items-center gap-2" style="margin: 0; font-size: 1.25rem; font-weight: 700;">
+                    <i class="fa fa-history" style="color: var(--primary);"></i> Transaction History
+                </h3>
+            </div>
+            
+            <div class="d-flex flex-column p-3">
+            {% for t in transactions %}
+                <div class="d-flex justify-content-between align-items-center p-3 mb-2 rounded-3" style="background: var(--background); border: 1px solid var(--border); transition: transform 0.2s;">
+                    <!-- Description -->
+                    <div style="flex: 1; padding-right: 1rem;">
+                        <b style="color: var(--text-primary); font-size: 0.95rem; display: block; margin-bottom: 0.25rem; line-height: 1.4;">{{ t.description }}</b>
+                        <p class="d-flex align-items-center gap-1 mb-0" style="color: var(--text-muted); font-size: 0.8rem;">
+                            <i class="fa fa-clock" style="opacity: 0.7;"></i> {{ t.date }}
+                        </p>
+                    </div>
+                    
+                    <!-- Badge values -->
+                    {% if t.type == 'Earned' or t.type == 'Refund' %}
+                    <span class="badge d-flex align-items-center gap-1" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34D399; font-weight: 700; font-size: 1rem; padding: 0.5rem 1rem; border-radius: 2rem;">
+                        <i class="fa fa-arrow-up" style="font-size: 0.75rem;"></i> {{ t.credits }}
+                    </span>
+                    {% else %}
+                    <span class="badge d-flex align-items-center gap-1" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #F87171; font-weight: 700; font-size: 1rem; padding: 0.5rem 1rem; border-radius: 2rem;">
+                        <i class="fa fa-arrow-down" style="font-size: 0.75rem;"></i> {{ t.credits }}
+                    </span>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="text-center d-flex flex-column align-items-center gap-3 py-5" style="color: var(--text-muted);">
+                    <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--background); display: flex; align-items: center; justify-content: center;">
+                        <i class="fa fa-receipt" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <p style="margin: 0; font-size: 0.95rem;">No transactions logged yet.</p>
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
