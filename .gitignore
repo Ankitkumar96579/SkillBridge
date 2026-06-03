@@ -1,0 +1,22 @@
+# Environment variables (contains private credentials)
+.env
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+
+# Python compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE and system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Dynamic logs and diagnostics
+scratch/smtp_diag.log
+scratch/*.log
