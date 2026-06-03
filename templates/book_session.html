@@ -1,0 +1,668 @@
+{% extends "base.html" %}
+{% block title %}Book Session{% endblock %}
+{% block header %}Book a Learning Session{% endblock %}
+{% block content %}
+<style>
+.booking-wrapper { max-width: 560px; margin: 0 auto; }
+.steps-bar { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 2rem; }
+.step-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); transition: color 0.3s; }
+.step-item.active { color: var(--primary); }
+.step-item.done { color: #10B981; }
+.step-num { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; background: rgba(255,255,255,0.06); border: 2px solid var(--border); transition: all 0.3s; }
+.step-item.active .step-num { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: 0 0 12px rgba(79,70,229,0.4); }
+.step-item.done .step-num { background: #10B981; border-color: #10B981; color: #fff; }
+.step-line { width: 40px; height: 2px; background: var(--border); margin: 0 0.5rem; transition: background 0.3s; }
+.step-line.done { background: #10B981; }
+
+.role-skill-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 1.5rem; box-shadow: 0 4px 24px rgba(0,0,0,0.15); }
+.section-title { margin: 0 0 0.35rem; color: var(--text-primary); font-size: 1.05rem; font-weight: 700; }
+.section-copy { margin: 0 0 1rem; color: var(--text-secondary); font-size: 0.88rem; line-height: 1.55; }
+
+.role-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem; }
+.role-card { padding: 1rem; border: 2px solid var(--border); border-radius: 14px; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; background: var(--surface); transition: all 0.25s; }
+.role-card:hover { border-color: rgba(79,70,229,0.35); }
+.role-card.active { border-color: var(--primary); background: rgba(79,70,229,0.06); box-shadow: 0 0 0 3px rgba(79,70,229,0.08); }
+.role-card input[type="radio"] { display: none; }
+.role-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+.teach-card .role-icon { background: rgba(16,185,129,0.12); color: #10B981; }
+.learn-card .role-icon { background: rgba(59,130,246,0.12); color: #3B82F6; }
+.role-title { font-weight: 700; color: var(--text-primary); }
+.role-meta { font-size: 0.82rem; color: var(--text-secondary); margin-top: 0.15rem; }
+
+.field-wrap { margin-top: 0.75rem; }
+.field-label { display: block; margin-bottom: 0.45rem; color: var(--text-primary); font-size: 0.88rem; font-weight: 700; }
+.select-wrap { position: relative; }
+.skill-select { width: 100%; padding: 0.9rem 1rem; border: 2px solid var(--border); border-radius: 12px; outline: none; background: rgba(255,255,255,0.05); color: var(--text-primary); cursor: pointer; appearance: none; font-family: inherit; font-size: 0.98rem; transition: all 0.2s; }
+.skill-select:focus { border-color: var(--primary); }
+.skill-select:disabled { opacity: 0.65; cursor: not-allowed; }
+.select-wrap i { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--primary); pointer-events: none; }
+
+.helper-note { margin-top: 0.75rem; padding: 0.85rem 1rem; border-radius: 12px; background: rgba(79,70,229,0.08); color: var(--text-secondary); font-size: 0.84rem; line-height: 1.5; }
+.warning-note { display: none; margin-top: 0.9rem; padding: 0.85rem 1rem; border-radius: 12px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #EF4444; font-size: 0.84rem; font-weight: 600; line-height: 1.45; }
+.status-note { display: none; margin-top: 0.9rem; color: var(--text-muted); font-size: 0.82rem; }
+
+.cal-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.15); }
+.cal-header { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: linear-gradient(135deg, rgba(79,70,229,0.1), rgba(99,102,241,0.05)); border-bottom: 1px solid var(--border); }
+.cal-header-center { display: flex; align-items: center; gap: 0.5rem; justify-content: center; }
+.cal-select-wrapper { position: relative; display: flex; align-items: center; }
+.cal-month-select,
+.cal-year-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 0.88rem;
+    font-weight: 700;
+    padding: 0.35rem 1.65rem 0.35rem 0.65rem;
+    cursor: pointer;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.2s ease;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234f46e5' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 0.75rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.cal-month-select:hover,
+.cal-year-select:hover {
+    border-color: var(--primary);
+    background-color: var(--surface);
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.1);
+    transform: translateY(-1px);
+}
+.cal-month-select:focus,
+.cal-year-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+.cal-month-select { min-width: 120px; }
+.cal-year-select { min-width: 80px; }
+.cal-nav { display: flex; gap: 0.3rem; }
+.cal-nav button { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; transition: all 0.2s; }
+.cal-nav button:hover { background: var(--primary); color: #fff; border-color: var(--primary); transform: scale(1.08); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 0.4rem; gap: 2px; }
+.cal-dow { text-align: center; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); padding: 0.25rem 0; }
+.cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.78rem; font-weight: 500; cursor: pointer; transition: all 0.2s; color: var(--text-primary); position: relative; }
+.cal-day:hover:not(.disabled):not(.selected) { background: rgba(79,70,229,0.12); color: var(--primary); }
+.cal-day.today:not(.selected) { color: var(--primary); font-weight: 700; }
+.cal-day.today:not(.selected)::after { content: ''; position: absolute; bottom: 3px; width: 4px; height: 4px; border-radius: 50%; background: var(--primary); }
+.cal-day.selected { background: var(--primary); color: #fff; font-weight: 700; box-shadow: 0 2px 12px rgba(79,70,229,0.45); transform: scale(1.1); }
+.cal-day.disabled { color: var(--text-muted); opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+.cal-day.other-month { opacity: 0.25; }
+
+.time-section { padding: 0.75rem; border-top: 1px solid var(--border); display: none; }
+.time-section.visible { display: block; animation: fadeSlide 0.3s ease; }
+@keyframes fadeSlide { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.time-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 0.4rem; }
+.time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.time-btn { padding: 0.4rem 0.15rem; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); color: var(--text-primary); font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center; }
+.time-btn:hover:not(.selected):not(.disabled) { border-color: var(--primary); background: rgba(79,70,229,0.08); color: var(--primary); }
+.time-btn.selected { background: linear-gradient(135deg, #4F46E5, #6366F1); color: #fff; border-color: transparent; box-shadow: 0 2px 10px rgba(79,70,229,0.35); }
+.time-btn.disabled { opacity: 0.25; cursor: not-allowed; pointer-events: none; }
+
+.manual-time-row { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.75rem; padding-top: 0.6rem; border-top: 1px dashed var(--border); }
+.manual-time-row label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
+.manual-time-input { flex: 1; padding: 0.4rem 0.5rem; border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text-primary); font-family: inherit; font-size: 0.82rem; outline: none; }
+.manual-time-input:focus { border-color: var(--primary); }
+.manual-time-apply { padding: 0.4rem 0.65rem; border-radius: 8px; border: none; background: var(--primary); color: #fff; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+
+.selection-summary { display: none; margin-top: 1.25rem; padding: 0.85rem 1rem; background: linear-gradient(135deg, rgba(79,70,229,0.08), rgba(16,185,129,0.06)); border: 1px solid rgba(79,70,229,0.2); border-radius: 12px; align-items: center; gap: 0.75rem; }
+.selection-summary.visible { display: flex; animation: fadeSlide 0.3s ease; }
+.selection-summary i { font-size: 1.2rem; color: var(--primary); }
+.summary-text { flex: 1; }
+.summary-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; }
+.summary-value { font-size: 0.92rem; font-weight: 700; color: var(--text-primary); }
+
+@media (max-width: 560px) {
+    .role-cards { grid-template-columns: 1fr; }
+    .time-grid { grid-template-columns: repeat(3, 1fr); }
+}
+</style>
+
+<div class="booking-wrapper">
+    <div class="steps-bar">
+        <div class="step-item active" id="step1"><span class="step-num">1</span> Role & Skill</div>
+        <div class="step-line" id="line1"></div>
+        <div class="step-item" id="step2"><span class="step-num">2</span> Date & Time</div>
+        <div class="step-line" id="line2"></div>
+        <div class="step-item" id="step3"><span class="step-num">3</span> Send Request</div>
+    </div>
+
+    <form method="POST" id="bookingForm">
+        <div class="role-skill-card" id="panel-role">
+            <h3 class="section-title">Choose your role first</h3>
+            
+
+            <div class="role-cards">
+                <label class="role-card teach-card" id="label-teach" onclick="handleRoleCardClick('teach')">
+                    <input type="radio" id="role-teach" name="role" value="teach" onchange="handleRoleChange('teach')">
+                    <div class="role-icon"><i class="fa fa-chalkboard-teacher"></i></div>
+                    <div>
+                        <div class="role-title">Teach</div>
+                        <div class="role-meta">You teach and earn 5 credits after confirmation</div>
+                    </div>
+                </label>
+
+                <label class="role-card learn-card" id="label-learn" onclick="handleRoleCardClick('learn')">
+                    <input type="radio" id="role-learn" name="role" value="learn" onchange="handleRoleChange('learn')">
+                    <div class="role-icon"><i class="fa fa-user-graduate"></i></div>
+                    <div>
+                        <div class="role-title">Learn</div>
+                        <div class="role-meta">You learn and 5 credits are debited after confirmation</div>
+                    </div>
+                </label>
+            </div>
+
+            <div class="field-wrap">
+                <label class="field-label" for="topic-select">Skill</label>
+                <div class="select-wrap">
+                    <select name="topic" id="topic-select" class="skill-select" required disabled onchange="handleTopicChange()">
+                        <option value="" selected>Select a role first</option>
+                    </select>
+                    <i class="fa fa-chevron-down"></i>
+                </div>
+                <div class="status-note" id="skill-status"></div>
+            </div>
+
+            <div class="helper-note" id="helper-note">
+                The learner must have at least 10 credits.
+            </div>
+
+            <div class="warning-note" id="credit-warning"></div>
+
+            <button type="button" id="btn-next-step" class="btn btn-primary w-100" style="margin-top: 1rem; padding: 1rem; border-radius: 12px; font-weight: 700; font-size: 1rem; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);" onclick="goToStep2()" disabled>
+                Pick Date & Time <i class="fa fa-arrow-right" style="margin-left: 0.5rem;"></i>
+            </button>
+        </div>
+
+        <div class="cal-card" id="panel-cal" style="display: none; margin-top: 1.25rem;">
+            <div class="cal-header">
+                <div class="cal-nav"><button type="button" onclick="changeMonth(-1)"><i class="fa fa-chevron-left"></i></button></div>
+                <div class="cal-header-center">
+                    <div class="cal-select-wrapper">
+                        <select class="cal-month-select" id="cal-month-select" onchange="changeMonthSelect(this.value)"></select>
+                    </div>
+                    <div class="cal-select-wrapper">
+                        <select class="cal-year-select" id="cal-year-select" onchange="changeYear(this.value)"></select>
+                    </div>
+                </div>
+                <div class="cal-nav"><button type="button" onclick="changeMonth(1)"><i class="fa fa-chevron-right"></i></button></div>
+            </div>
+            <div class="cal-grid" id="cal-grid">
+                <div class="cal-dow">Sun</div><div class="cal-dow">Mon</div><div class="cal-dow">Tue</div>
+                <div class="cal-dow">Wed</div><div class="cal-dow">Thu</div><div class="cal-dow">Fri</div><div class="cal-dow">Sat</div>
+            </div>
+            <div class="time-section" id="time-section">
+                <div class="time-label"><i class="fa fa-clock" style="margin-right: 0.3rem;"></i>Morning</div>
+                <div class="time-grid" id="time-morning"></div>
+                <div class="time-label" style="margin-top: 0.6rem;"><i class="fa fa-sun" style="margin-right: 0.3rem;"></i>Afternoon</div>
+                <div class="time-grid" id="time-afternoon"></div>
+                <div class="time-label" style="margin-top: 0.6rem;"><i class="fa fa-moon" style="margin-right: 0.3rem;"></i>Evening</div>
+                <div class="time-grid" id="time-evening"></div>
+                <div class="manual-time-row">
+                    <label><i class="fa fa-keyboard" style="margin-right: 0.3rem;"></i>Custom:</label>
+                    <input type="time" class="manual-time-input" id="manual-time-input">
+                    <button type="button" class="manual-time-apply" onclick="applyManualTime()">Apply</button>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" id="session_time" name="session_time">
+
+        <div class="selection-summary" id="sel-summary">
+            <i class="fa fa-calendar-check"></i>
+            <div class="summary-text">
+                <div class="summary-label">Selected Date & Time</div>
+                <div class="summary-value" id="summary-value">-</div>
+            </div>
+        </div>
+
+        <div id="panel-actions" style="display: none; margin-top: 1.25rem;">
+            <button type="button" class="btn w-100" onclick="goToStep1()" style="padding: 0.8rem; border-radius: 10px; font-weight: 600; background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: var(--text-secondary); margin-bottom: 0.5rem;">
+                <i class="fa fa-arrow-left" style="margin-right: 0.5rem;"></i> Back to Role & Skill
+            </button>
+            <button type="submit" id="submit-btn" class="btn btn-primary w-100" style="padding: 1rem; border-radius: 10px; font-weight: 700; font-size: 1.05rem; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);" disabled>
+                <i class="fa fa-paper-plane me-2"></i> Send Booking Request
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+const topicsTeach = {{ (topics_teach or []) | tojson | safe }};
+const topicsLearn = {{ (topics_learn or []) | tojson | safe }};
+let myCredits = {{ (my_credits or 0) | int }};
+let peerCredits = {{ (peer_credits or 0) | int }};
+const peerName = {{ peer_name | tojson | safe }};
+
+let currentMonth;
+let currentYear;
+let selectedDate = null;
+let selectedTime = null;
+let selectedRole = null;
+let creditsSynced = false;
+let creditSyncError = '';
+
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+currentMonth = today.getMonth();
+currentYear = today.getFullYear();
+
+const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const morningSlots = ['08:00', '08:15', '08:30', '08:45', '09:00', '09:15', '09:30', '09:45', '10:00', '10:15', '10:30', '10:45', '11:00', '11:15', '11:30', '11:45'];
+const afternoonSlots = ['12:00', '12:15', '12:30', '12:45', '13:00', '13:15', '13:30', '13:45', '14:00', '14:15', '14:30', '14:45', '15:00', '15:15', '15:30', '15:45'];
+const eveningSlots = ['16:00', '16:15', '16:30', '16:45', '17:00', '17:15', '17:30', '17:45', '18:00', '18:15', '18:30', '18:45', '19:00', '19:15', '19:30', '19:45', '20:00', '20:15', '20:30', '20:45'];
+
+function fmt12(timeValue) {
+    const [hour, minute] = timeValue.split(':').map(Number);
+    return `${hour % 12 || 12}:${String(minute).padStart(2, '0')} ${hour >= 12 ? 'PM' : 'AM'}`;
+}
+
+function resetDateTimeSelection() {
+    selectedDate = null;
+    selectedTime = null;
+    document.getElementById('session_time').value = '';
+    document.getElementById('manual-time-input').value = '';
+    document.getElementById('time-section').classList.remove('visible');
+    document.getElementById('sel-summary').classList.remove('visible');
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('submit-btn').style.opacity = '0.5';
+    document.getElementById('step3').classList.remove('active');
+    document.getElementById('line2').classList.remove('done');
+}
+
+function getRoleTopics(role) {
+    return role === 'teach' ? topicsTeach : topicsLearn;
+}
+
+function getLearnerCredits() {
+    if (selectedRole === 'learn') return myCredits;
+    if (selectedRole === 'teach') return peerCredits;
+    return 0;
+}
+
+function getLearnerName() {
+    if (selectedRole === 'learn') return 'You';
+    if (selectedRole === 'teach') return peerName;
+    return 'The learner';
+}
+
+async function syncBookingCredits() {
+    creditsSynced = false;
+    creditSyncError = '';
+    try {
+        const response = await fetch(`/api/booking_state/{{ peer_id }}`, {
+            method: 'GET',
+            cache: 'no-store',
+            credentials: 'same-origin',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        if (!response.ok) {
+            creditSyncError = 'Could not refresh latest credits from the server.';
+            creditsSynced = true;
+            updateStep1State();
+            return;
+        }
+        const data = await response.json();
+        if (data.success) {
+            myCredits = Number(data.my_credits) || 0;
+            peerCredits = Number(data.peer_credits) || 0;
+            creditsSynced = true;
+            updateStep1State();
+            return;
+        }
+        creditSyncError = data.message || 'Could not refresh latest credits from the server.';
+        creditsSynced = true;
+        updateStep1State();
+    } catch (error) {
+        creditSyncError = 'Could not refresh latest credits from the server.';
+        creditsSynced = true;
+        updateStep1State();
+        console.warn('Booking credit sync failed', error);
+    }
+}
+
+function updateSkillOptions() {
+    const select = document.getElementById('topic-select');
+    const status = document.getElementById('skill-status');
+    const topics = getRoleTopics(selectedRole);
+
+    select.innerHTML = '';
+
+    if (!selectedRole) {
+        select.disabled = true;
+        select.innerHTML = '<option value="" selected>Select a role first</option>';
+        status.style.display = 'none';
+        return;
+    }
+
+    if (!topics.length) {
+        select.disabled = true;
+        select.innerHTML = '<option value="" selected>No matching skills for this role</option>';
+        status.textContent = `No mutual skills are available when you choose "${selectedRole}".`;
+        status.style.display = 'block';
+        return;
+    }
+
+    select.disabled = false;
+    select.innerHTML = '<option value="" selected>Select a skill</option>';
+    topics.forEach((skill) => {
+        const option = document.createElement('option');
+        option.value = skill;
+        option.textContent = skill;
+        select.appendChild(option);
+    });
+
+    if (topics.length === 1) {
+        select.value = topics[0];
+    }
+
+    status.textContent = `${topics.length} matching skill${topics.length === 1 ? '' : 's'} available for this role.`;
+    status.style.display = 'block';
+}
+
+function handleRoleCardClick(role) {
+    if (selectedRole === role) {
+        updateStep1State();
+        return;
+    }
+
+    handleRoleChange(role);
+}
+
+function handleRoleChange(role) {
+    selectedRole = role;
+    creditsSynced = false;
+    resetDateTimeSelection();
+
+    document.querySelectorAll('.role-card').forEach((card) => card.classList.remove('active'));
+    document.getElementById(`label-${role}`).classList.add('active');
+    document.getElementById('role-teach').checked = role === 'teach';
+    document.getElementById('role-learn').checked = role === 'learn';
+
+    updateSkillOptions();
+    updateStep1State();
+    syncBookingCredits();
+}
+
+function handleTopicChange() {
+    resetDateTimeSelection();
+    updateStep1State();
+}
+
+function updateStep1State() {
+    const topic = document.getElementById('topic-select').value;
+    const warning = document.getElementById('credit-warning');
+    const nextButton = document.getElementById('btn-next-step');
+
+    warning.style.display = 'none';
+
+    let canProceed = Boolean(selectedRole && topic);
+    if (canProceed) {
+        if (!creditsSynced) {
+            warning.textContent = 'Checking latest credit balances...';
+            warning.style.display = 'block';
+            canProceed = false;
+        }
+
+        const learnerCredits = getLearnerCredits();
+        if (canProceed && learnerCredits < 10) {
+            warning.textContent = `${getLearnerName()} need${getLearnerName() === 'You' ? '' : 's'} at least 10 credits before the booking can continue. Current balance: ${learnerCredits}.`;
+            warning.style.display = 'block';
+            canProceed = false;
+        } else if (canProceed && creditSyncError) {
+            warning.textContent = creditSyncError;
+            warning.style.display = 'block';
+        }
+    }
+
+    nextButton.disabled = !canProceed;
+    nextButton.style.opacity = canProceed ? '1' : '0.5';
+}
+
+function goToStep2() {
+    const topic = document.getElementById('topic-select').value;
+    if (!selectedRole || !topic) {
+        alert('Select role first and then choose a skill.');
+        return;
+    }
+
+    if (getLearnerCredits() < 10) {
+        alert(`${getLearnerName()} must have at least 10 credits to continue.`);
+        return;
+    }
+
+    document.getElementById('panel-role').style.display = 'none';
+    document.getElementById('panel-cal').style.display = 'block';
+    document.getElementById('panel-actions').style.display = 'block';
+    document.getElementById('step1').classList.remove('active');
+    document.getElementById('step1').classList.add('done');
+    document.getElementById('line1').classList.add('done');
+    document.getElementById('step2').classList.add('active');
+    renderCalendar();
+}
+
+function goToStep1() {
+    resetDateTimeSelection();
+    document.getElementById('panel-role').style.display = 'block';
+    document.getElementById('panel-cal').style.display = 'none';
+    document.getElementById('panel-actions').style.display = 'none';
+    document.getElementById('step1').classList.add('active');
+    document.getElementById('step1').classList.remove('done');
+    document.getElementById('line1').classList.remove('done');
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step3').classList.remove('active');
+    document.getElementById('line2').classList.remove('done');
+}
+
+function isSlotPast(timeValue) {
+    if (!selectedDate) return false;
+    const now = new Date();
+    const todayDate = new Date();
+    todayDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate.getTime() !== todayDate.getTime()) return false;
+
+    const [hour, minute] = timeValue.split(':').map(Number);
+    const slotDate = new Date();
+    slotDate.setHours(hour, minute, 0, 0);
+    return slotDate <= now;
+}
+
+function renderSlots(containerId, slots) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+
+    slots.forEach((timeValue) => {
+        const button = document.createElement('div');
+        button.className = 'time-btn';
+        if (isSlotPast(timeValue)) button.classList.add('disabled');
+        button.textContent = fmt12(timeValue);
+        button.dataset.time = timeValue;
+        if (!isSlotPast(timeValue)) {
+            button.onclick = () => selectTime(timeValue, button);
+        }
+        container.appendChild(button);
+    });
+}
+
+function selectTime(timeValue, button) {
+    document.querySelectorAll('.time-btn').forEach((item) => item.classList.remove('selected'));
+    button.classList.add('selected');
+    selectedTime = timeValue;
+    updateSummary();
+}
+
+function applyManualTime() {
+    const input = document.getElementById('manual-time-input');
+    if (!input.value) return;
+    if (isSlotPast(input.value)) {
+        alert('This time has already passed.');
+        return;
+    }
+
+    document.querySelectorAll('.time-btn').forEach((item) => item.classList.remove('selected'));
+    selectedTime = input.value;
+    updateSummary();
+}
+
+function populateYearSelect() {
+    const select = document.getElementById('cal-year-select');
+    select.innerHTML = '';
+
+    const currentYearNow = new Date().getFullYear();
+    const startYear = Math.min(currentYearNow - 1, currentYear);
+    const endYear = Math.max(currentYearNow + 3, currentYear);
+    for (let year = startYear; year <= endYear; year += 1) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        if (year === currentYear) option.selected = true;
+        select.appendChild(option);
+    }
+}
+
+function changeYear(yearValue) {
+    currentYear = parseInt(yearValue, 10);
+    renderCalendar();
+}
+
+function changeMonthSelect(monthValue) {
+    currentMonth = parseInt(monthValue, 10);
+    renderCalendar();
+}
+
+function populateMonthSelect() {
+    const select = document.getElementById('cal-month-select');
+    select.innerHTML = '';
+    monthNames.forEach((month, idx) => {
+        const option = document.createElement('option');
+        option.value = idx;
+        option.textContent = month;
+        if (idx === currentMonth) option.selected = true;
+        select.appendChild(option);
+    });
+}
+
+function renderCalendar() {
+    populateMonthSelect();
+    populateYearSelect();
+
+    const grid = document.getElementById('cal-grid');
+    grid.querySelectorAll('.cal-day').forEach((element) => element.remove());
+
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const prevMonthDays = new Date(currentYear, currentMonth, 0).getDate();
+
+    for (let index = firstDay - 1; index >= 0; index -= 1) {
+        const day = document.createElement('div');
+        day.className = 'cal-day other-month disabled';
+        day.textContent = prevMonthDays - index;
+        grid.appendChild(day);
+    }
+
+    for (let dayValue = 1; dayValue <= daysInMonth; dayValue += 1) {
+        const day = document.createElement('div');
+        day.className = 'cal-day';
+        day.textContent = dayValue;
+
+        const date = new Date(currentYear, currentMonth, dayValue);
+        date.setHours(0, 0, 0, 0);
+
+        if (date < today) {
+            day.classList.add('disabled');
+        } else {
+            if (date.getTime() === today.getTime()) day.classList.add('today');
+            if (selectedDate && date.getTime() === selectedDate.getTime()) day.classList.add('selected');
+            day.onclick = () => selectDate(date);
+        }
+
+        grid.appendChild(day);
+    }
+
+    const totalCells = grid.querySelectorAll('.cal-day').length;
+    const remainingCells = (7 - (totalCells % 7)) % 7;
+    for (let extra = 1; extra <= remainingCells; extra += 1) {
+        const day = document.createElement('div');
+        day.className = 'cal-day other-month disabled';
+        day.textContent = extra;
+        grid.appendChild(day);
+    }
+}
+
+function selectDate(date) {
+    selectedDate = date;
+    selectedTime = null;
+    document.querySelectorAll('.time-btn').forEach((button) => button.classList.remove('selected'));
+    document.getElementById('manual-time-input').value = '';
+    renderCalendar();
+    document.getElementById('time-section').classList.add('visible');
+    renderSlots('time-morning', morningSlots);
+    renderSlots('time-afternoon', afternoonSlots);
+    renderSlots('time-evening', eveningSlots);
+    updateSummary();
+}
+
+function changeMonth(direction) {
+    currentMonth += direction;
+    if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear += 1;
+    }
+    if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear -= 1;
+    }
+    renderCalendar();
+}
+
+function updateSummary() {
+    const summary = document.getElementById('sel-summary');
+    const value = document.getElementById('summary-value');
+    const hidden = document.getElementById('session_time');
+    const submitButton = document.getElementById('submit-btn');
+
+    if (selectedDate && selectedTime) {
+        const dateString = selectedDate.toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        });
+        value.textContent = `${dateString} at ${fmt12(selectedTime)}`;
+        summary.classList.add('visible');
+
+        const year = selectedDate.getFullYear();
+        const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const day = String(selectedDate.getDate()).padStart(2, '0');
+        hidden.value = `${year}-${month}-${day}T${selectedTime}`;
+
+        submitButton.disabled = false;
+        submitButton.style.opacity = '1';
+        document.getElementById('step3').classList.add('active');
+        document.getElementById('line2').classList.add('done');
+    } else {
+        summary.classList.remove('visible');
+        hidden.value = '';
+        submitButton.disabled = true;
+        submitButton.style.opacity = '0.5';
+        document.getElementById('step3').classList.remove('active');
+        document.getElementById('line2').classList.remove('done');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('topic-select').addEventListener('input', handleTopicChange);
+    document.getElementById('topic-select').addEventListener('change', handleTopicChange);
+    updateSkillOptions();
+    updateStep1State();
+    syncBookingCredits();
+});
+</script>
+{% endblock %}

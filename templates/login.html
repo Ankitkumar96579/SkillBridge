@@ -1,0 +1,78 @@
+{% extends 'public_base.html' %}
+
+{% block title %}Login - SkillBridge{% endblock %}
+
+{% block body_class %}split-auth-body{% endblock %}
+
+{% block content %}
+<div class="auth-split-wrapper">
+    <!-- Left Side: Form -->
+    <div class="auth-form-side">
+        <div class="section motion-card auth-card fade-in-up" style="animation-delay: 0.1s;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h2 class="text-gradient-vibrant" style="font-size: 1.75rem; font-weight: 800;">Welcome Back</h2>
+                <p style="color: var(--text-secondary); font-size: 0.95rem;">Enter your details to access your account</p>
+            </div>
+
+            <form method="POST" autocomplete="off">
+                <div style="position: relative; margin-bottom: 1.25rem;">
+                    <i class="fa fa-envelope" style="position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none;"></i>
+                    <input type="email" name="email" placeholder="Email Address" style="padding-left: 2.75rem; margin-bottom: 0; border-radius: 10px;" required autocomplete="off" spellcheck="false">
+                </div>
+                
+                <div class="password-field" style="position: relative; margin-bottom: 1.5rem;">
+                    <i class="fa fa-lock" style="position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none;"></i>
+                    <input type="password" id="loginPassword" name="password" placeholder="Password" style="padding-left: 2.75rem; margin-bottom: 0; border-radius: 10px;" required autocomplete="new-password">
+                    <button type="button" class="password-toggle" data-target="loginPassword" aria-label="Show password">
+                        <i class="fa fa-eye"></i>
+                    </button>
+                </div>
+                
+                <button type="submit" class="btn w-100" style="padding: 0.85rem; font-size: 1.05rem; border-radius: 10px; background: var(--primary); color: white; font-weight: 700; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);">
+                    Login <i class="fa fa-arrow-right" style="margin-left: 0.5rem;"></i>
+                </button>
+            </form>
+
+            <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+                Don't have an account? <a href="/register" style="color: var(--primary); font-weight: 600;">Sign up</a>
+            </p>
+            <p style="text-align: center; margin-top: 0.5rem; font-size: 0.85rem;">
+                <a href="/forgot_password" style="color: var(--primary); font-weight: 500;">Forgot Password?</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Right Side: Branding Info -->
+    <div class="auth-sidebar-info">
+        <h1 class="fade-in-up">Bridge the Gap in Your<br>Learning Journey.</h1>
+        <p class="fade-in-up" style="animation-delay: 0.2s;">Join a global community of 1,000+ passionate experts and learners exchanging skills every day.</p>
+        
+        <div class="auth-features-list">
+            <div class="auth-feature-item fade-in-up" style="animation-delay: 0.3s;">
+                <i class="fa fa-bolt"></i> <span>Instant Skill Matching</span>
+            </div>
+            <div class="auth-feature-item fade-in-up" style="animation-delay: 0.4s;">
+                <i class="fa fa-users"></i> <span>Peer-to-Peer Collaboration</span>
+            </div>
+            <div class="auth-feature-item fade-in-up" style="animation-delay: 0.5s;">
+                <i class="fa fa-shield-halved"></i> <span>Verified Expert Community</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+document.querySelectorAll('.password-toggle').forEach((button) => {
+    button.addEventListener('click', () => {
+        const input = document.getElementById(button.dataset.target);
+        const icon = button.querySelector('i');
+        const showPassword = input.type === 'password';
+
+        input.type = showPassword ? 'text' : 'password';
+        icon.className = showPassword ? 'fa fa-eye-slash' : 'fa fa-eye';
+        button.setAttribute('aria-label', showPassword ? 'Hide password' : 'Show password');
+    });
+});
+</script>
+{% endblock %}

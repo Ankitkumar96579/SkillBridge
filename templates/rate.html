@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+{% block title %}Rate Session{% endblock %}
+{% block header %}Rate Your Session{% endblock %}
+{% block content %}
+<style>
+.rating-container {
+    max-width: 550px;
+    margin: 2.5rem auto;
+}
+.rating-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius-lg);
+    padding: 3rem 2rem;
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.rating-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 6px;
+    background: var(--gradient-vibrant);
+}
+.rating-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: var(--gradient-vibrant);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.peer-profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 1.5rem 0;
+}
+.peer-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(79, 70, 229, 0.15);
+    box-shadow: var(--shadow-md);
+    margin-bottom: 0.75rem;
+    transition: all 0.3s ease;
+}
+.rating-card:hover .peer-avatar {
+    border-color: var(--primary);
+    transform: scale(1.05);
+}
+.peer-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin: 0;
+}
+.peer-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+.stars-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 2rem 0;
+}
+.stars {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: center;
+    gap: 0.6rem;
+}
+.stars input {
+    display: none;
+}
+.stars label {
+    font-size: 2.75rem;
+    color: #d1d5db; /* Visible unselected star color in light mode */
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+/* Hover and checked rules */
+.stars label:hover,
+.stars label:hover ~ label,
+.stars input:checked ~ label {
+    color: #fbbf24; /* Warm Gold */
+}
+.stars label:hover {
+    transform: scale(1.18);
+}
+.rating-desc {
+    margin-top: 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    min-height: 24px;
+    transition: all 0.2s ease;
+}
+.rating-emoji {
+    font-size: 2.25rem;
+    margin-bottom: 0.25rem;
+    min-height: 40px;
+    transition: transform 0.3s var(--transition-spring);
+}
+.emoji-bounce {
+    animation: emojiPop 0.4s var(--transition-spring);
+}
+@keyframes emojiPop {
+    0% { transform: scale(0.5); }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+.feedback-container {
+    text-align: left;
+    margin-bottom: 2rem;
+}
+.feedback-label {
+    display: block;
+    font-weight: 700;
+    font-size: 0.88rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+.feedback-box {
+    width: 100%;
+    padding: 1rem;
+    min-height: 120px;
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius-md);
+    outline: none;
+    background: rgba(255, 255, 255, 0.5);
+    color: var(--text-primary);
+    font-family: inherit;
+    resize: vertical;
+    transition: all 0.3s ease;
+}
+.feedback-box:focus {
+    border-color: var(--primary);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+.char-count {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 0.35rem;
+}
+.submit-btn {
+    width: 100%;
+    background: var(--gradient-vibrant);
+    color: white;
+    padding: 1rem;
+    border: none;
+    border-radius: var(--border-radius-md);
+    font-weight: 700;
+    font-size: 1.05rem;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(236, 72, 153, 0.25);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
+}
+.submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+</style>
+
+<div class="rating-container">
+    <div class="rating-card">
+        <h2 class="rating-title">Rate Your Session</h2>
+        <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 0;">How was your learning or teaching exchange?</p>
+
+        <div class="peer-profile">
+            <img src="{{ peer_pic | avatar_url(peer_name) }}" class="peer-avatar" alt="{{ peer_name }}">
+            <h4 class="peer-name">{{ peer_name }}</h4>
+            <div class="peer-subtitle">Completed Session Partner</div>
+        </div>
+
+        <form method="POST" id="ratingForm">
+            <div class="stars-wrapper">
+                <div class="rating-emoji" id="ratingEmoji">✨</div>
+                <div class="stars" id="starContainer">
+                    <input type="radio" id="star5" name="rating" value="5" required />
+                    <label for="star5"><i class="fa fa-star"></i></label>
+                    
+                    <input type="radio" id="star4" name="rating" value="4" />
+                    <label for="star4"><i class="fa fa-star"></i></label>
+                    
+                    <input type="radio" id="star3" name="rating" value="3" />
+                    <label for="star3"><i class="fa fa-star"></i></label>
+                    
+                    <input type="radio" id="star2" name="rating" value="2" />
+                    <label for="star2"><i class="fa fa-star"></i></label>
+                    
+                    <input type="radio" id="star1" name="rating" value="1" />
+                    <label for="star1"><i class="fa fa-star"></i></label>
+                </div>
+                <div class="rating-desc" id="ratingDesc">Tap to rate</div>
+            </div>
+
+            <div class="feedback-container">
+                <label class="feedback-label" for="feedback-text">Feedback & Review (Optional)</label>
+                <textarea name="feedback" id="feedback-text" class="feedback-box" maxlength="500" placeholder="Share a few words about what went well, how they helped you, or what could be improved..."></textarea>
+                <div class="char-count" id="charCount">0 / 500</div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn" disabled>
+                <i class="fa fa-paper-plane"></i> Submit Review
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+const ratingTexts = {
+    1: 'Poor 😞',
+    2: 'Fair 😐',
+    3: 'Good 🙂',
+    4: 'Very Good 😁',
+    5: 'Excellent! 🤩'
+};
+
+const ratingEmojis = {
+    1: '😞',
+    2: '😐',
+    3: '🙂',
+    4: '😁',
+    5: '🤩'
+};
+
+const starInputs = document.querySelectorAll('.stars input');
+const ratingDesc = document.getElementById('ratingDesc');
+const ratingEmoji = document.getElementById('ratingEmoji');
+const submitBtn = document.getElementById('submitBtn');
+const feedbackText = document.getElementById('feedback-text');
+const charCount = document.getElementById('charCount');
+
+starInputs.forEach(input => {
+    input.addEventListener('change', (e) => {
+        const value = e.target.value;
+        ratingDesc.textContent = ratingTexts[value];
+        ratingEmoji.textContent = ratingEmojis[value];
+        ratingEmoji.classList.remove('emoji-bounce');
+        void ratingEmoji.offsetWidth; // Trigger reflow for animation reset
+        ratingEmoji.classList.add('emoji-bounce');
+        submitBtn.disabled = false;
+    });
+});
+
+feedbackText.addEventListener('input', (e) => {
+    const len = e.target.value.length;
+    charCount.textContent = `${len} / 500`;
+});
+</script>
+{% endblock %}

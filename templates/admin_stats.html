@@ -1,0 +1,128 @@
+{% extends "admin_base.html" %}
+{% block header %}Platform Analytics{% endblock %}
+
+{% block content %}
+<div class="admin-stats-grid" style="margin-bottom: 2rem;">
+    <!-- Active Users Card -->
+    <div class="admin-stat-card admin-stat-primary">
+        <div class="admin-stat-icon">
+            <i class="fa fa-users"></i>
+        </div>
+        <div class="admin-stat-info">
+            <p>Active Users (7d)</p>
+            <h3>{{ active_users }}</h3>
+        </div>
+    </div>
+
+    <!-- Total Sessions Card -->
+    <div class="admin-stat-card admin-stat-secondary">
+        <div class="admin-stat-icon">
+            <i class="fa fa-calendar-check"></i>
+        </div>
+        <div class="admin-stat-info">
+            <p>Total Sessions</p>
+            <h3>{{ sessions }}</h3>
+        </div>
+    </div>
+
+    <!-- Total Users Card -->
+    <div class="admin-stat-card admin-stat-accent">
+        <div class="admin-stat-icon">
+            <i class="fa fa-user-plus"></i>
+        </div>
+        <div class="admin-stat-info">
+            <p>Total Users</p>
+            <h3>{{ total_users }}</h3>
+        </div>
+    </div>
+</div>
+
+<div class="admin-stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+    <!-- Chart 1: Users by Skill Level -->
+    <div class="admin-table-container" style="padding: 1.5rem;">
+        <h4 style="margin-bottom: 1.5rem; color: var(--text-primary);">Users by Skill Level</h4>
+        <div style="position: relative; height: 300px;">
+            <canvas id="skillLevelChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart 2: Active vs Inactive Users -->
+    <div class="admin-table-container" style="padding: 1.5rem;">
+        <h4 style="margin-bottom: 1.5rem; color: var(--text-primary);">User Activity Status</h4>
+        <div style="position: relative; height: 300px;">
+            <canvas id="activityChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Data for Skill Levels
+        const skillLabels = {{ skill_labels|tojson|safe }};
+        const skillCounts = {{ skill_counts|tojson|safe }};
+
+        const ctx1 = document.getElementById('skillLevelChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: skillLabels.length ? skillLabels : ['No Data'],
+                datasets: [{
+                    label: 'Number of Users',
+                    data: skillCounts.length ? skillCounts : [0],
+                    backgroundColor: 'rgba(79, 70, 229, 0.7)',
+                    borderColor: 'rgba(79, 70, 229, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // Data for Active/Inactive
+        const activeUsers = {{ active_users|default(0) }};
+        const inactiveUsers = {{ inactive_users|default(0) }};
+        
+        const ctx2 = document.getElementById('activityChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: ['Active (Last 7 Days)', 'Inactive'],
+                datasets: [{
+                    data: [activeUsers, inactiveUsers],
+                    backgroundColor: [
+                        'rgba(16, 185, 129, 0.7)', // Emerald
+                        'rgba(245, 158, 11, 0.7)'  // Amber
+                    ],
+                    borderColor: [
+                        'rgba(16, 185, 129, 1)',
+                        'rgba(245, 158, 11, 1)'
+                    ],
+                    borderWidth: 1,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
