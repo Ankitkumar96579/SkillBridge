@@ -27,10 +27,7 @@ app.config['MYSQL_DB'] = os.getenv('MYSQL_DB')
 app.config['MYSQL_PORT'] = int(os.getenv('MYSQL_PORT', 4000))
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
-print("MYSQL_HOST =", app.config['MYSQL_HOST'])
-print("MYSQL_USER =", app.config['MYSQL_USER'])
-print("MYSQL_DB =", app.config['MYSQL_DB'])
-print("MYSQL_PORT =", app.config['MYSQL_PORT'])
+
 
 app.config['MYSQL_CUSTOM_OPTIONS'] = {
     'ssl': {
