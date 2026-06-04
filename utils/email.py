@@ -84,4 +84,3 @@ def send_otp_email(email, otp, purpose):
     except Exception as e:
         print("Brevo API Error:", e)
         return False, str(e)
-```
