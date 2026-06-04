@@ -59,16 +59,12 @@ app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
 
 
 # DIAGNOSTIC LOGGING TO FILE
-log_path = os.path.join(os.path.dirname(__file__), 'scratch', 'smtp_diag.log')
-with open(log_path, 'a') as f:
-    f.write(f"\n--- {datetime.now()} ---\n")
-    f.write(f"MAIL_SERVER: {app.config['MAIL_SERVER']}\n")
-    f.write(f"MAIL_PORT: {app.config['MAIL_PORT']}\n")
-    f.write(f"MAIL_USE_TLS: {app.config['MAIL_USE_TLS']}\n")
-    f.write(f"MAIL_USE_SSL: {app.config['MAIL_USE_SSL']}\n")
-    u = app.config['MAIL_USERNAME']
+u = app.config['MAIL_USERNAME']
+
+if u:
     f.write(f"MAIL_USERNAME: {u[0]}...{u[-1]} (Len: {len(u)})\n")
-    f.write("------------------------\n")
+else:
+    f.write("MAIL_USERNAME not configured\n")
 
 mail = Mail(app)
 
