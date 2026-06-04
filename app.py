@@ -56,6 +56,7 @@ app.config['MAIL_USE_SSL'] = False
 app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
+app.config['BREVO_API_KEY'] = os.environ.get('BREVO_API_KEY')
 
 print("MAIL_SERVER =", app.config['MAIL_SERVER'])
 print("MAIL_PORT =", app.config['MAIL_PORT'])
