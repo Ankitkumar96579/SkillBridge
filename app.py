@@ -1,9 +1,9 @@
+import os
 import cloudinary
 import cloudinary.uploader
 from flask import Flask, render_template, request, redirect, session, jsonify, flash
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
-import os
 import threading
 import time as time_module
 from datetime import datetime, timedelta
@@ -35,15 +35,18 @@ app.config['MYSQL_CUSTOM_OPTIONS'] = {
         'ca': '/etc/secrets/isrgrootx1.pem'
     }
 }
+
+
 mysql = MySQL(app)
-bcrypt = Bcrypt(app)
-
-
 cloudinary.config(
     cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
     api_key=os.environ.get('CLOUDINARY_API_KEY'),
     api_secret=os.environ.get('CLOUDINARY_API_SECRET'),
     secure=True
+bcrypt = Bcrypt(app)
+
+
+
 )
 # Email Configuration
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
