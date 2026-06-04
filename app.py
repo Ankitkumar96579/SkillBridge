@@ -57,6 +57,10 @@ app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
 
+print("MAIL_SERVER =", app.config['MAIL_SERVER'])
+print("MAIL_PORT =", app.config['MAIL_PORT'])
+print("MAIL_USERNAME =", app.config['MAIL_USERNAME'])
+print("MAIL_PASSWORD exists =", bool(app.config['MAIL_PASSWORD']))
 
 # DIAGNOSTIC LOGGING TO FILE
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
