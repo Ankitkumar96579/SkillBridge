@@ -32,6 +32,11 @@ print("MYSQL_USER =", app.config['MYSQL_USER'])
 print("MYSQL_DB =", app.config['MYSQL_DB'])
 print("MYSQL_PORT =", app.config['MYSQL_PORT'])
 
+app.config['MYSQL_CUSTOM_OPTIONS'] = {
+    'ssl': {
+        'ca': '/etc/secrets/ca.pem'
+    }
+}
 mysql = MySQL(app)
 bcrypt = Bcrypt(app)
 
