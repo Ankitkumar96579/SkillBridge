@@ -27,7 +27,7 @@ app.config['MYSQL_DB'] = os.getenv('MYSQL_DB')
 app.config['MYSQL_PORT'] = int(os.getenv('MYSQL_PORT', 4000))
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
-app.config['MYSQL_PORT'] = int(os.getenv('MYSQL_PORT', 3306))
+
 
 mysql = MySQL(app)
 bcrypt = Bcrypt(app)
