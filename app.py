@@ -1,3 +1,5 @@
+import cloudinary
+import cloudinary.uploader
 from flask import Flask, render_template, request, redirect, session, jsonify, flash
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
@@ -11,8 +13,7 @@ from flask_mail import Mail
 from dotenv import load_dotenv
 from utils.security import verify_password, hash_password
 from functools import wraps
-import cloudinary
-import cloudinary.uploader
+
 
 env_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(env_path)
