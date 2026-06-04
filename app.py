@@ -34,7 +34,7 @@ print("MYSQL_PORT =", app.config['MYSQL_PORT'])
 
 app.config['MYSQL_CUSTOM_OPTIONS'] = {
     'ssl': {
-        'ca': '/etc/secrets/ca.pem'
+        'ca': '/etc/secrets/isrgrootx1.pem'
     }
 }
 mysql = MySQL(app)
