@@ -15,7 +15,7 @@ import cloudinary
 import cloudinary.uploader
 
 env_path = os.path.join(os.path.dirname(__file__), '.env')
-load_dotenv(env_path, override=True)
+load_dotenv(env_path)
 
 app = Flask(__name__)
 app.secret_key = 'skillbridgekey'
