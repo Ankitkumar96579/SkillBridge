@@ -1,12 +1,12 @@
-import smtplib
-from email.message import EmailMessage
+```python
+import requests
 from flask import current_app
 
 def send_otp_email(email, otp, purpose):
     """
-    Send an OTP email using smtplib directly to ensure compatibility
-    with Gmail App Passwords.
+    Send OTP email using Brevo API
     """
+
     subjects = {
         'signup': 'Your SkillBridge Signup OTP',
         'admin_login': 'SkillBridge Admin 2FA Code',
@@ -14,52 +14,75 @@ def send_otp_email(email, otp, purpose):
     }
 
     subject = subjects.get(purpose, 'Your OTP Code')
-    body = f"""
-    Hello,
 
-    Your OTP code for {purpose.replace('_', ' ')} is: {otp}
+    html_content = f"""
+    <html>
+    <body>
+        <h2>SkillBridge OTP Verification</h2>
 
-    This code will expire in 5 minutes.
-    If you did not request this code, please ignore this email.
+        <p>Hello,</p>
 
-    Regards,
-    The SkillBridge Team
+        <p>Your OTP code for <b>{purpose.replace('_', ' ')}</b> is:</p>
+
+        <h1 style="color:#2563eb;">{otp}</h1>
+
+        <p>This code will expire in 5 minutes.</p>
+
+        <p>If you did not request this code, please ignore this email.</p>
+
+        <br>
+
+        <p>Regards,<br>
+        SkillBridge Team</p>
+    </body>
+    </html>
     """
 
-    # Retrieve configuration
-    server_host = current_app.config.get('MAIL_SERVER', 'smtp.gmail.com')
-    port = current_app.config.get('MAIL_PORT', 587)
-    use_tls = current_app.config.get('MAIL_USE_TLS', True)
-    use_ssl = current_app.config.get('MAIL_USE_SSL', False)
-    username = current_app.config.get('MAIL_USERNAME')
-    password = current_app.config.get('MAIL_PASSWORD')
-    sender = current_app.config.get('MAIL_DEFAULT_SENDER', username)
+    api_key = current_app.config.get('BREVO_API_KEY')
 
-    invalid_fields = []
-    if not username or username == 'your_email@gmail.com':
-        invalid_fields.append('MAIL_USERNAME')
-    if not password or password == 'your_app_password':
-        invalid_fields.append('MAIL_PASSWORD')
+    if not api_key:
+        return False, "BREVO_API_KEY is missing"
 
-    if invalid_fields:
-        return False, f"Email configuration is incomplete: {', '.join(invalid_fields)}"
+    headers = {
+        "accept": "application/json",
+        "api-key": api_key,
+        "content-type": "application/json"
+    }
 
-    msg = EmailMessage()
-    msg.set_content(body)
-    msg['Subject'] = subject
-    msg['From'] = sender
-    msg['To'] = email
+    payload = {
+        "sender": {
+            "name": "SkillBridge",
+            "email": current_app.config.get(
+                'MAIL_DEFAULT_SENDER',
+                'skillbridge1202@gmail.com'
+            )
+        },
+        "to": [
+            {
+                "email": email
+            }
+        ],
+        "subject": subject,
+        "htmlContent": html_content
+    }
 
     try:
-        smtp_class = smtplib.SMTP_SSL if use_ssl else smtplib.SMTP
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            json=payload,
+            headers=headers,
+            timeout=30
+        )
 
-        # Use smtplib directly so OTP delivery stays independent of Flask-Mail.
-        with smtp_class(server_host, port, timeout=20) as smtp:
-            if use_tls and not use_ssl:
-                smtp.starttls()
-            smtp.login(username, password)
-            smtp.send_message(msg)
-            return True, "Email sent successfully."
+        print("Brevo Response:", response.status_code)
+        print("Brevo Body:", response.text)
+
+        if response.status_code == 201:
+            return True, "Email sent successfully"
+
+        return False, response.text
+
     except Exception as e:
-        print(f"SMTP Error: {e}")
+        print("Brevo API Error:", e)
         return False, str(e)
+```
