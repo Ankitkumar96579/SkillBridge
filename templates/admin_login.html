@@ -2,23 +2,30 @@
 
 {% block title %}Admin Login - SkillBridge{% endblock %}
 
+{% block body_class %}split-auth-body{% endblock %}
+
 {% block content %}
 <div class="auth-split-wrapper">
     <!-- Left Side: Branding Info -->
     <div class="auth-sidebar-info" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
         <h1 class="fade-in-up">Platform Control<br>Center.</h1>
-        <p class="fade-in-up" style="animation-delay: 0.2s;">Secure administrative access for SkillBridge managers. Monitor community growth and ensure platform integrity.</p>
+        <p class="fade-in-up" style="animation-delay: 0.2s; margin-bottom: 1.5rem;">Secure administrative access for SkillBridge managers. Monitor community growth and ensure platform integrity.</p>
         
         <div class="auth-features-list">
-            <div class="auth-feature-item fade-in-up" style="animation-delay: 0.3s;">
-                <i class="fa fa-chart-line"></i> <span>Real-time Analytics</span>
+            <div class="auth-feature-item fade-in-up" style="animation-delay: 0.3s; margin-bottom: 0.25rem;">
+                <i class="fa fa-user-shield"></i> <span>1. MANAGER CREDENTIALS</span>
             </div>
-            <div class="auth-feature-item fade-in-up" style="animation-delay: 0.4s;">
-                <i class="fa fa-user-shield"></i> <span>User Management</span>
+            <div style="font-size: 0.9rem; color: rgba(255,255,255,0.75); margin-left: 3.5rem; margin-bottom: 1rem; line-height: 1.4;" class="fade-in-up">Authenticate using your registered administrator username/email and password.</div>
+
+            <div class="auth-feature-item fade-in-up" style="animation-delay: 0.4s; margin-bottom: 0.25rem;">
+                <i class="fa fa-envelope-shield"></i> <span>2. MANDATORY 2FA OTP</span>
             </div>
-            <div class="auth-feature-item fade-in-up" style="animation-delay: 0.5s;">
-                <i class="fa fa-message"></i> <span>System Notifications</span>
+            <div style="font-size: 0.9rem; color: rgba(255,255,255,0.75); margin-left: 3.5rem; margin-bottom: 1rem; line-height: 1.4;" class="fade-in-up">A secure 6-digit verification code will be sent to your registered staff mailbox.</div>
+
+            <div class="auth-feature-item fade-in-up" style="animation-delay: 0.5s; margin-bottom: 0.25rem;">
+                <i class="fa fa-circle-nodes"></i> <span>3. ADMINISTRATIVE ACCESS</span>
             </div>
+            <div style="font-size: 0.9rem; color: rgba(255,255,255,0.75); margin-left: 3.5rem; line-height: 1.4;" class="fade-in-up">Access real-time analytics, user database, reports, and system messages control.</div>
         </div>
     </div>
 
@@ -37,13 +44,16 @@
                     <input type="text" id="username" placeholder="Admin Username or Email" style="padding-left: 2.75rem; margin-bottom: 0;" required autocomplete="off">
                 </div>
                 
-                <div class="password-field" style="margin-bottom: 1.5rem;">
+                <div class="password-field" style="margin-bottom: 0.5rem;">
                     <i class="fa fa-lock" style="position: absolute; left: 1rem; top: 1.1rem; color: var(--text-muted);"></i>
                     <input type="password" id="password" placeholder="Password" style="padding-left: 2.75rem; margin-bottom: 0;" required autocomplete="new-password">
                     <button type="button" class="password-toggle" data-target="password" aria-label="Show password">
                         <i class="fa fa-eye"></i>
                     </button>
                 </div>
+                <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1.25rem; line-height: 1.4;">
+                    <i class="fa fa-info-circle me-1" style="color: var(--primary);"></i> This portal is strictly for platform managers. General users should log in via the regular candidate login.
+                </p>
                 
                 <button type="button" onclick="checkCreds()" id="loginBtn" class="btn w-100" style="padding: 1rem; font-size: 1.1rem; border-radius: 0.5rem; background: var(--primary); color: white; font-weight: 600;">
                     Next <i class="fa fa-arrow-right ms-2"></i>
@@ -53,10 +63,13 @@
             <!-- Step 2: 2FA OTP -->
             <div id="step2" style="display: none;">
                 <p class="text-center mb-3" style="font-size: 0.9rem; color: var(--text-secondary);">2FA Required. Enter the OTP sent to <b id="displayEmail"></b></p>
-                <div style="position: relative; margin-bottom: 1.25rem;">
+                <div style="position: relative; margin-bottom: 0.5rem;">
                     <i class="fa fa-key" style="position: absolute; left: 1rem; top: 1.1rem; color: var(--text-muted);"></i>
                     <input type="text" id="otp" placeholder="6-Digit OTP" maxlength="6" style="padding-left: 2.75rem; margin-bottom: 0; text-align: center; letter-spacing: 0.5rem;" autocomplete="off">
                 </div>
+                <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1.25rem; line-height: 1.4;">
+                    <i class="fa fa-shield-halved me-1" style="color: var(--secondary);"></i> A security OTP code was dispatched to your staff email. The code is active for 10 minutes.
+                </p>
                 <button type="button" onclick="verifyOTP()" id="verifyOtpBtn" class="btn w-100 mb-3" style="padding: 1rem; font-size: 1.1rem; border-radius: 0.5rem; background: var(--primary); color: white; font-weight: 600;">
                     Login <i class="fa fa-check-circle ms-2"></i>
                 </button>
@@ -71,6 +84,18 @@
 
 
 <script>
+document.querySelectorAll('.password-toggle').forEach((button) => {
+    button.addEventListener('click', () => {
+        const input = document.getElementById(button.dataset.target);
+        const icon = button.querySelector('i');
+        const showPassword = input.type === 'password';
+
+        input.type = showPassword ? 'text' : 'password';
+        icon.className = showPassword ? 'fa fa-eye-slash' : 'fa fa-eye';
+        button.setAttribute('aria-label', showPassword ? 'Hide password' : 'Show password');
+    });
+});
+
 let adminEmail = "";
 
 function showAlert(message, type = 'danger') {
