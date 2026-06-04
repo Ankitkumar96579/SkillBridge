@@ -9,3 +9,4 @@ mysqlclient==2.2.8
 mysql-connector-python==9.6.0
 bcrypt==5.0.0
 gunicorn==23.0.0
+requests==2.32.3
