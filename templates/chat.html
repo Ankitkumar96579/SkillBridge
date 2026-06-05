@@ -659,57 +659,116 @@ function handleSend(e) {
 
 /* === REAL-TIME POLLING === */
 function pollMessages() {
+
     fetch(`/api/messages/{{ uid }}?after=${lastMsgId}`)
     .then(res => res.json())
     .then(data => {
-        if (data.messages.length > 0) {
-            const chatArea = document.getElementById('chatArea');
-            data.messages.forEach(m => {
-                lastMsgId = m.id;
-                const isSent = m.sender_id === data.my_id;
-                const row = document.createElement('div');
-                row.className = `message-row ${isSent ? 'sent' : 'received'}`;
-                
-                let html = '';
-                if (!isSent) {
-                    let picSrc = m.profile_pic || 'default.png';
-                    if (!picSrc.startsWith('http://') && !picSrc.startsWith('https://')) {
-                        picSrc = '/static/uploads/' + picSrc;
-                    }
-                    html += `<img src="${picSrc}" onerror="this.src='https://ui-avatars.com/api/?name=Peer&background=E0E7FF&color=4F46E5'" class="avatar-small">`;
-                }
-                html += `<div class="message-bubble" data-id="${m.id}">`;
-                html += `<div class="message-text">${m.message || ''}</div>`;
-                
-                if (m.file) {
-                    const ext = m.file.split('.').pop().toLowerCase();
-                    if (['png','jpg','jpeg','gif','webp'].includes(ext)) {
-                        html += `<img src="/static/chat_files/${m.file}" style="max-width:100%; border-radius:8px; margin-top:0.5rem;" onclick="openLightbox('/static/chat_files/${m.file}')">`;
-                    } else {
-                        html += `<div style="margin-top:0.5rem;"><i class="fa fa-file me-1"></i><a href="/static/chat_files/${m.file}" target="_blank">${m.file}</a></div>`;
-                    }
-                }
-                
-                html += `<div class="msg-info">${m.time || ''}`;
-                if (isSent) {
-                    html += m.seen ? ' <i class="fa fa-check-double" style="color:#60A5FA;"></i>' : ' <i class="fa fa-check"></i>';
-                }
-                html += `</div></div>`;
-                
-                row.innerHTML = html;
-                chatArea.appendChild(row);
-            });
-            scrollToBottom();
+
+        if (!data.messages || data.messages.length === 0) {
+            return;
         }
-    });
+
+        const chatArea = document.getElementById('chatArea');
+
+        data.messages.forEach(m => {
+
+            // Prevent duplicate rendering
+            if (document.querySelector(`[data-id="${m.id}"]`)) {
+                return;
+            }
+
+            lastMsgId = Math.max(lastMsgId, m.id);
+
+            const isSent = m.sender_id === data.my_id;
+
+            const row = document.createElement('div');
+            row.className = `message-row ${isSent ? 'sent' : 'received'}`;
+
+            let html = '';
+
+            if (!isSent) {
+
+                let picSrc = m.profile_pic || 'default.png';
+
+                if (
+                    !picSrc.startsWith('http://') &&
+                    !picSrc.startsWith('https://')
+                ) {
+                    picSrc = '/static/uploads/' + picSrc;
+                }
+
+                html += `
+                    <img src="${picSrc}"
+                    class="avatar-small"
+                    onerror="this.src='https://ui-avatars.com/api/?name=Peer'">
+                `;
+            }
+
+            html += `
+                <div class="message-bubble" data-id="${m.id}">
+                    <div class="message-text">${m.message || ''}</div>
+            `;
+
+            if (m.file) {
+
+                const ext = m.file.split('.').pop().toLowerCase();
+
+                if (
+                    ['png','jpg','jpeg','gif','webp']
+                    .includes(ext)
+                ) {
+
+                    html += `
+                        <img
+                            src="/static/chat_files/${m.file}"
+                            style="max-width:100%;border-radius:8px;margin-top:8px;"
+                        >
+                    `;
+
+                } else {
+
+                    html += `
+                        <div style="margin-top:8px;">
+                            <a href="/static/chat_files/${m.file}" target="_blank">
+                                ${m.file}
+                            </a>
+                        </div>
+                    `;
+                }
+            }
+
+            html += `
+                <div class="msg-info">
+                    ${m.time || ''}
+            `;
+
+            if (isSent) {
+
+                html += m.seen
+                    ? ` <i class="fa fa-check-double" style="color:#60A5FA;"></i>`
+                    : ` <i class="fa fa-check"></i>`;
+            }
+
+            html += `
+                </div>
+                </div>
+            `;
+
+            row.innerHTML = html;
+
+            chatArea.appendChild(row);
+        });
+
+        scrollToBottom();
+    })
+    .catch(err => console.error(err));
 }
 
-setInterval(pollMessages, 10000);
+setInterval(pollMessages, 5000);
 
 /* === TYPING INDICATOR === */
 
 let typingSent = false;
-let typingTimeout;
 
 /* User typing */
 msgInput.addEventListener('input', function () {
@@ -809,7 +868,7 @@ function updateOnlineStatus() {
     });
 }
 updateOnlineStatus();
-setInterval(updateOnlineStatus, 10000);
+setInterval(updateOnlineStatus, 30000);
 
 /* === LIGHTBOX === */
 function openLightbox(src) {
