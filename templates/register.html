@@ -35,7 +35,14 @@
                 <button type="button" onclick="verifyOTP()" id="verifyOtpBtn" class="btn w-100 mb-3" style="padding: 0.85rem; font-size: 1.05rem; border-radius: 10px; background: var(--primary); color: white; font-weight: 700; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);">
                     Verify OTP <i class="fa fa-check-circle ms-2"></i>
                 </button>
-                <button type="button" onclick="sendOTP()" class="btn btn-link w-100 text-decoration-none" style="color: var(--primary); font-size: 0.9rem; font-weight: 600;">Didn't get the code? Resend</button>
+               <button
+    type="button"
+    id="resendBtn"
+    onclick="sendOTP()"
+    class="btn btn-link w-100 text-decoration-none">
+
+    Didn't get the code? Resend
+</button>
             </div>
 
             <!-- Step 3: Final Info -->
@@ -103,6 +110,42 @@
 
 
 <script>
+    let otpCountdown;
+
+function startOtpTimer() {
+
+    const resendBtn = document.getElementById('resendBtn');
+
+    if (!resendBtn) return;
+
+    let seconds = 300;
+
+    resendBtn.disabled = true;
+
+    clearInterval(otpCountdown);
+
+    otpCountdown = setInterval(() => {
+
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+
+        resendBtn.innerHTML =
+            `Resend OTP (${mins}:${String(secs).padStart(2, '0')})`;
+
+        seconds--;
+
+        if (seconds < 0) {
+
+            clearInterval(otpCountdown);
+
+            resendBtn.disabled = false;
+
+            resendBtn.innerHTML =
+                "Didn't get the code? Resend";
+        }
+
+    }, 1000);
+}
 let currentEmail = "";
 
 function showAlert(message, type = 'danger') {
@@ -138,15 +181,25 @@ async function sendOTP() {
             body: JSON.stringify({ email: email, purpose: 'signup' })
         });
         const data = await res.json();
-        if (data.success) {
-            currentEmail = email;
-            document.getElementById('displayEmail').innerText = email;
-            document.getElementById('step1').style.display = 'none';
-            document.getElementById('step2').style.display = 'block';
-            document.getElementById('regTitle').innerText = "Verify Email";
-            document.getElementById('regSubtitle').innerText = "Enter the 6-digit code we sent to your inbox";
-            showAlert(data.message, 'success');
-        } else {
+     if (data.success) {
+
+    currentEmail = email;
+
+    document.getElementById('displayEmail').innerText = email;
+
+    document.getElementById('step1').style.display = 'none';
+
+    document.getElementById('step2').style.display = 'block';
+
+    document.getElementById('regTitle').innerText = "Verify Email";
+
+    document.getElementById('regSubtitle').innerText =
+        "Enter the 6-digit code we sent to your inbox";
+
+    startOtpTimer();
+
+    showAlert(data.message, 'success');
+} else {
             showAlert(data.message);
         }
     } catch (err) {
