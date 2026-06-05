@@ -2008,9 +2008,11 @@ def api_get_messages(uid):
     messages = cur.fetchall()
 
     # Convert time objects to strings
-    for m in messages:
-        if m['time']:
-            m['time'] = m['time'].strftime('%H:%M')
+   for m in messages:
+    if m['time']:
+        m['time'] = (
+            m['time'] + timedelta(hours=5, minutes=30)
+        ).strftime('%I:%M %p')
 
     # Mark as seen
     cur.execute("UPDATE chat SET seen=TRUE WHERE receiver_id=%s AND sender_id=%s", (my_id, uid))
