@@ -1975,6 +1975,7 @@ def api_get_conversations():
 @app.route('/api/messages/<int:uid>', methods=['GET'])
 def api_get_messages(uid):
     """Get chat messages with a user"""
+
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
 
@@ -1984,47 +1985,62 @@ def api_get_messages(uid):
     cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
 
     if after > 0:
-        # Polling: only get new messages after a specific ID
+
         cur.execute("""
             SELECT c.id, c.sender_id, c.message, c.file, c.seen, c.time,
                    c.starred, c.pinned, c.reaction,
                    u.name AS sender_name, u.profile_pic
             FROM chat c
             JOIN users u ON c.sender_id = u.user_id
-            WHERE ((c.sender_id=%s AND c.receiver_id=%s) OR (c.sender_id=%s AND c.receiver_id=%s))
+            WHERE (
+                    (c.sender_id=%s AND c.receiver_id=%s)
+                 OR (c.sender_id=%s AND c.receiver_id=%s)
+                  )
               AND c.id > %s
             ORDER BY c.id ASC
         """, (my_id, uid, uid, my_id, after))
+
     else:
+
         cur.execute("""
             SELECT c.id, c.sender_id, c.message, c.file, c.seen, c.time,
                    c.starred, c.pinned, c.reaction,
                    u.name AS sender_name, u.profile_pic
             FROM chat c
             JOIN users u ON c.sender_id = u.user_id
-            WHERE (c.sender_id=%s AND c.receiver_id=%s) OR (c.sender_id=%s AND c.receiver_id=%s)
+            WHERE (
+                    (c.sender_id=%s AND c.receiver_id=%s)
+                 OR (c.sender_id=%s AND c.receiver_id=%s)
+                  )
             ORDER BY c.id ASC
         """, (my_id, uid, uid, my_id))
 
-messages = cur.fetchall()
+    messages = cur.fetchall()
 
-# Convert time objects to strings
-for m in messages:
-    if m['time']:
-        m['time'] = m['time'].strftime('%I:%M %p')
+    for m in messages:
+        if m.get('time'):
+            try:
+                m['time'] = m['time'].strftime('%I:%M %p')
+            except Exception:
+                pass
 
-# Mark as seen
-cur.execute(
-    "UPDATE chat SET seen=TRUE WHERE receiver_id=%s AND sender_id=%s",
-    (my_id, uid)
-)
+    cur.execute(
+        """
+        UPDATE chat
+        SET seen=TRUE
+        WHERE receiver_id=%s
+          AND sender_id=%s
+        """,
+        (my_id, uid)
+    )
 
-mysql.connection.commit()
+    mysql.connection.commit()
 
-return jsonify({
-    'messages': messages,
-    'my_id': my_id
-}), 200
+    return jsonify({
+        'messages': messages,
+        'my_id': my_id
+    }), 200
+
 @app.route('/api/messages/<int:uid>', methods=['POST'])
 def api_send_message(uid):
     """Send a message via AJAX"""
