@@ -2558,4 +2558,14 @@ textarea:focus {
     text-align: center;
   }
 }
+#resendBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+#resendBtn {
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
 
