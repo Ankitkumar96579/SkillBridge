@@ -4,6 +4,7 @@ from utils.email import send_otp_email
 from utils.security import verify_password, hash_password
 import MySQLdb.cursors
 from datetime import datetime
+from time import time
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -18,6 +19,20 @@ def send_otp():
 
     if not email or not purpose:
         return jsonify({'success': False, 'message': 'Email and purpose are required.'}), 400
+        # OTP resend protection (5 minutes)
+last_sent = session.get(f'otp_sent_{email}_{purpose}')
+
+if last_sent:
+
+    remaining = 300 - (time() - last_sent)
+
+    if remaining > 0:
+
+        return jsonify({
+            'success': False,
+            'message': f'Please wait {int(remaining)} seconds before requesting another OTP.',
+            'remaining': int(remaining)
+        }), 429
 
     from app import mysql, bcrypt  # Avoid circular import
 
@@ -49,7 +64,14 @@ def send_otp():
     print(f"DEBUG: send_otp_email returned: {success}, {msg}", flush=True)
     
     if success:
-        return jsonify({'success': True, 'message': 'OTP sent to your email.'})
+
+    session[f'otp_sent_{email}_{purpose}'] = time()
+
+    return jsonify({
+        'success': True,
+        'message': 'OTP sent to your email.',
+        'remaining': 300
+    })
     else:
         return jsonify({'success': False, 'message': f'Failed to send email: {msg}'}), 500
 
