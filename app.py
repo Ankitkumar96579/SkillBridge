@@ -1418,16 +1418,32 @@ def check_typing(uid):
         return {'typing': True}
     return {'typing': False}
 
+from datetime import datetime
+
 @app.before_request
 def update_last_seen():
-    if 'user_id' in session:
-        try:
-            cur = mysql.connection.cursor()
-            cur.execute("UPDATE users SET last_seen=NOW() WHERE user_id=%s",
-                        (session['user_id'],))
-            mysql.connection.commit()
-        except Exception:
-            pass
+    if 'user_id' not in session:
+        return
+
+    last_update = session.get('last_seen_update')
+
+    now = datetime.utcnow().timestamp()
+
+    if last_update and now - last_update < 60:
+        return
+
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute(
+            "UPDATE users SET last_seen=NOW() WHERE user_id=%s",
+            (session['user_id'],)
+        )
+        mysql.connection.commit()
+
+        session['last_seen_update'] = now
+
+    except Exception as e:
+        print(e)
 
 @app.route('/check_online/<int:uid>')
 def check_online(uid):
