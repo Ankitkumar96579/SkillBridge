@@ -2022,21 +2022,18 @@ def api_get_messages(uid):
                   )
             ORDER BY c.id ASC
         """, (my_id, uid, uid, my_id))
+messages = cur.fetchall()
 
-    messages = cur.fetchall()
+for m in messages:
+    if m['time']:
+        m['time'] = m['time'].strftime('%I:%M %p')
 
-    for m in messages:
-        if m.get('time'):
-            try:
-                m['time'] = m['time'].strftime('%I:%M %p')
-            except Exception:
-                pass
-
-    if messages:
+# Mark as seen only if new messages exist
+if messages:
     cur.execute(
         """
         UPDATE chat
-        SET seen=TRUE
+        SET seen = TRUE
         WHERE receiver_id=%s
         AND sender_id=%s
         AND seen=FALSE
@@ -2045,11 +2042,11 @@ def api_get_messages(uid):
     )
 
     mysql.connection.commit()
-    return jsonify({
-        'messages': messages,
-        'my_id': my_id
-    }), 200
 
+return jsonify({
+    'messages': messages,
+    'my_id': my_id
+}), 200
 @app.route('/api/messages/<int:uid>', methods=['POST'])
 def api_send_message(uid):
     """Send a message via AJAX"""
