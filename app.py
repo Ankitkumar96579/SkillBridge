@@ -1,3 +1,5 @@
+from datetime import datetime
+from time import time
 import os
 import cloudinary
 import cloudinary.uploader
@@ -1425,17 +1427,21 @@ def stop_typing():
 
 @app.route('/check_typing/<int:uid>')
 def check_typing(uid):
+
     cur = mysql.connection.cursor()
-    cur.execute("SELECT is_typing FROM typing_status WHERE user_id=%s", (uid,))
+
+    cur.execute(
+        "SELECT is_typing FROM typing_status WHERE user_id=%s",
+        (uid,)
+    )
+
     row = cur.fetchone()
 
-    if row and row[0]:
-        return {'typing': True}
-    return {'typing': False}
+    cur.close()
 
-from datetime import datetime
-
-from time import time
+    return {
+        'typing': bool(row and row[0])
+    }
 
 @app.before_request
 def update_last_seen():
