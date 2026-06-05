@@ -3,77 +3,111 @@ from utils.otp import generate_otp, store_otp, verify_otp, clear_otp
 from utils.email import send_otp_email
 from utils.security import verify_password, hash_password
 import MySQLdb.cursors
-from datetime import datetime
 from time import time
 
 auth_bp = Blueprint('auth', __name__)
-
 @auth_bp.route('/send_otp', methods=['POST'])
 def send_otp():
     """
     Send an OTP to the user's email.
     """
+
     data = request.get_json()
+
     email = data.get('email')
     purpose = data.get('purpose')
 
     if not email or not purpose:
-        return jsonify({'success': False, 'message': 'Email and purpose are required.'}), 400
-        # OTP resend protection (5 minutes)
-last_sent = session.get(f'otp_sent_{email}_{purpose}')
-
-if last_sent:
-
-    remaining = 300 - (time() - last_sent)
-
-    if remaining > 0:
-
         return jsonify({
             'success': False,
-            'message': f'Please wait {int(remaining)} seconds before requesting another OTP.',
-            'remaining': int(remaining)
-        }), 429
+            'message': 'Email and purpose are required.'
+        }), 400
 
-    from app import mysql, bcrypt  # Avoid circular import
+    # OTP resend protection (5 minutes)
+    last_sent = session.get(f'otp_sent_{email}_{purpose}')
 
-    # Business logic validation based on purpose
+    if last_sent:
+
+        remaining = 300 - (time() - last_sent)
+
+        if remaining > 0:
+
+            return jsonify({
+                'success': False,
+                'message': f'Please wait {int(remaining)} seconds before requesting another OTP.',
+                'remaining': int(remaining)
+            }), 429
+
+    from app import mysql, bcrypt
+
     cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    
-    if purpose == 'signup':
-        # Check if user already exists
-        cur.execute("SELECT * FROM users WHERE email=%s", (email,))
-        if cur.fetchone():
-            return jsonify({'success': False, 'message': 'An account with this email already exists.'}), 400
-    
-    elif purpose in ['admin_login', 'forgot_password']:
-        # Check if user/admin exists
-        table = 'admins' if purpose == 'admin_login' else 'users'
-        cur.execute(f"SELECT * FROM {table} WHERE email=%s", (email,))
-        if not cur.fetchone():
-            return jsonify({'success': False, 'message': 'Email not found.'}), 404
 
-    # Generate and send OTP
+    # Signup validation
+    if purpose == 'signup':
+
+        cur.execute(
+            "SELECT * FROM users WHERE email=%s",
+            (email,)
+        )
+
+        if cur.fetchone():
+
+            return jsonify({
+                'success': False,
+                'message': 'An account with this email already exists.'
+            }), 400
+
+    # Forgot password / Admin login validation
+    elif purpose in ['admin_login', 'forgot_password']:
+
+        table = 'admins' if purpose == 'admin_login' else 'users'
+
+        cur.execute(
+            f"SELECT * FROM {table} WHERE email=%s",
+            (email,)
+        )
+
+        if not cur.fetchone():
+
+            return jsonify({
+                'success': False,
+                'message': 'Email not found.'
+            }), 404
+
     otp = generate_otp()
-    
-    # Store in session
+
     store_otp(email, otp, purpose)
-    
-    # Send email
-    print(f"DEBUG: auth.py calling send_otp_email for {email}...", flush=True)
-    success, msg = send_otp_email(email, otp, purpose)
-    print(f"DEBUG: send_otp_email returned: {success}, {msg}", flush=True)
-    
+
+    print(
+        f"DEBUG: auth.py calling send_otp_email for {email}...",
+        flush=True
+    )
+
+    success, msg = send_otp_email(
+        email,
+        otp,
+        purpose
+    )
+
+    print(
+        f"DEBUG: send_otp_email returned: {success}, {msg}",
+        flush=True
+    )
+
     if success:
 
-    session[f'otp_sent_{email}_{purpose}'] = time()
+        session[f'otp_sent_{email}_{purpose}'] = time()
+
+        return jsonify({
+            'success': True,
+            'message': 'OTP sent to your email.',
+            'remaining': 300
+        })
 
     return jsonify({
-        'success': True,
-        'message': 'OTP sent to your email.',
-        'remaining': 300
-    })
-    else:
-        return jsonify({'success': False, 'message': f'Failed to send email: {msg}'}), 500
+        'success': False,
+        'message': f'Failed to send email: {msg}'
+    }), 500
 
 @auth_bp.route('/verify_otp', methods=['POST'])
 def verify():
