@@ -248,25 +248,26 @@ def logout():
 
 # ─── Pages ────────────────────────────────────────────────────────────────────
 
-@app.route('/home')
 @app.route('/')
+@app.route('/home')
 def home():
+
     cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    
-    # Fetch platform metrics
-    cur.execute("SELECT COUNT(*) as count FROM users")
-    total_users = cur.fetchone()['count'] or 0
-    
-    cur.execute("SELECT COUNT(*) as count FROM sessions WHERE status='Completed'")
-    total_sessions = cur.fetchone()['count'] or 0
-    
-    cur.execute("SELECT COUNT(*) as count FROM skills_offered")
-    total_skills = cur.fetchone()['count'] or 0
-    
-    return render_template('home.html', 
-                           total_users=total_users, 
-                           total_sessions=total_sessions, 
-                           total_skills=total_skills)
+
+    cur.execute("""
+        SELECT total_users,total_sessions,total_skills
+        FROM app_metrics
+        LIMIT 1
+    """)
+
+    stats = cur.fetchone()
+
+    return render_template(
+        'home.html',
+        total_users=stats['total_users'],
+        total_sessions=stats['total_sessions'],
+        total_skills=stats['total_skills']
+    )
 
 @app.route('/browse')
 def browse():
