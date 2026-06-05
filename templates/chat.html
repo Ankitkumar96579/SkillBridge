@@ -765,7 +765,7 @@ function pollMessages() {
     .catch(err => console.error(err));
 }
 
-setInterval(pollMessages, 5000);
+setInterval(pollMessages, 10000);
 
 /* === TYPING INDICATOR === */
 
@@ -836,7 +836,7 @@ function checkTypingStatus() {
 checkTypingStatus();
 
 /* Then every 5 seconds */
-const typingPoll = setInterval(checkTypingStatus, 5000);
+const typingPoll = setInterval(checkTypingStatus, 60000);
 
 
 /* Cleanup */
@@ -869,7 +869,7 @@ function updateOnlineStatus() {
     });
 }
 updateOnlineStatus();
-setInterval(updateOnlineStatus, 30000);
+setInterval(updateOnlineStatus, 60000);
 
 /* === LIGHTBOX === */
 function openLightbox(src) {
