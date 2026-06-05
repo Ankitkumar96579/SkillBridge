@@ -645,14 +645,13 @@ function handleSend(e) {
 
     fetch(`/api/messages/{{ uid }}`, { method: 'POST', body: formData })
     .then(res => res.json())
-    .then(data => {
-        // Clear form
-        document.getElementById('msgInput').value = '';
-        clearFile();
-        cancelReply();
-        // Fetch will pick up new message
-        pollMessages();
-    });
+   .then(data => {
+    document.getElementById('msgInput').value = '';
+    clearFile();
+    cancelReply();
+
+    lastMsgId = data.id;
+});
 
     return false;
 }
@@ -671,6 +670,8 @@ function pollMessages() {
         const chatArea = document.getElementById('chatArea');
 
         data.messages.forEach(m => {
+            console.log("poll received:", m.id);
+        
 
             // Prevent duplicate rendering
             if (document.querySelector(`[data-id="${m.id}"]`)) {
