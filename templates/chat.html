@@ -707,34 +707,88 @@ function pollMessages() {
 setInterval(pollMessages, 10000);
 
 /* === TYPING INDICATOR === */
+
 let typingSent = false;
 let typingTimeout;
 
-msgInput.addEventListener('input', function() {
+/* User typing */
+msgInput.addEventListener('input', function () {
 
     if (!typingSent) {
-        fetch('/typing', { method: 'POST' });
+        fetch('/typing', {
+            method: 'POST'
+        });
+
         typingSent = true;
     }
 
     clearTimeout(typingTimeout);
 
     typingTimeout = setTimeout(() => {
-        fetch('/stop_typing', { method: 'POST' });
+
+        fetch('/stop_typing', {
+            method: 'POST'
+        });
+
         typingSent = false;
+
     }, 3000);
 
 });
 
-setInterval(function() {
+
+/* Check other user typing status */
+function checkTypingStatus() {
+
     fetch('/check_typing/{{ uid }}')
-    .then(res => res.json())
-    .then(data => {
-        document.getElementById('typingIndicator').style.display = data.typing ? 'inline' : 'none';
-        if(data.typing) document.getElementById('onlineStatus').style.display = 'none';
-        else document.getElementById('onlineStatus').style.display = 'inline';
+        .then(res => res.json())
+        .then(data => {
+
+            const typingIndicator =
+                document.getElementById('typingIndicator');
+
+            const onlineStatus =
+                document.getElementById('onlineStatus');
+
+            if (data.typing) {
+
+                typingIndicator.style.display = 'inline';
+
+                if (onlineStatus) {
+                    onlineStatus.style.display = 'none';
+                }
+
+            } else {
+
+                typingIndicator.style.display = 'none';
+
+                if (onlineStatus) {
+                    onlineStatus.style.display = 'inline';
+                }
+            }
+
+        })
+        .catch(err => console.log('Typing check error:', err));
+}
+
+
+/* Run immediately */
+checkTypingStatus();
+
+/* Then every 5 seconds */
+const typingPoll = setInterval(checkTypingStatus, 5000);
+
+
+/* Cleanup */
+window.addEventListener('beforeunload', () => {
+
+    clearInterval(typingPoll);
+
+    fetch('/stop_typing', {
+        method: 'POST'
     });
-}, 30000);
+
+});
 
 /* === ONLINE STATUS === */
 function updateOnlineStatus() {
@@ -755,7 +809,7 @@ function updateOnlineStatus() {
     });
 }
 updateOnlineStatus();
-setInterval(updateOnlineStatus, 30000);
+setInterval(updateOnlineStatus, 10000);
 
 /* === LIGHTBOX === */
 function openLightbox(src) {
