@@ -1,4 +1,5 @@
 from datetime import datetime
+from datetime import timedelta
 from time import time
 import os
 import cloudinary
@@ -2005,10 +2006,10 @@ def api_get_messages(uid):
             ORDER BY c.id ASC
         """, (my_id, uid, uid, my_id))
 
-    messages = cur.fetchall()
+   messages = cur.fetchall()
 
-    # Convert time objects to strings
-   for m in messages:
+# Convert time objects to strings
+for m in messages:
     if m['time']:
         m['time'] = (
             m['time'] + timedelta(hours=5, minutes=30)
