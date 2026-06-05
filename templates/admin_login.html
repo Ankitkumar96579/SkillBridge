@@ -84,6 +84,42 @@
 
 
 <script>
+    let otpCountdown;
+
+function startOtpTimer() {
+
+    const resendBtn = document.getElementById('resendBtn');
+
+    if (!resendBtn) return;
+
+    let seconds = 300;
+
+    resendBtn.disabled = true;
+
+    clearInterval(otpCountdown);
+
+    otpCountdown = setInterval(() => {
+
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+
+        resendBtn.innerHTML =
+            `Resend OTP (${mins}:${String(secs).padStart(2, '0')})`;
+
+        seconds--;
+
+        if (seconds < 0) {
+
+            clearInterval(otpCountdown);
+
+            resendBtn.disabled = false;
+
+            resendBtn.innerHTML =
+                "Didn't get the code? Resend";
+        }
+
+    }, 1000);
+}
 document.querySelectorAll('.password-toggle').forEach((button) => {
     button.addEventListener('click', () => {
         const input = document.getElementById(button.dataset.target);
@@ -136,13 +172,19 @@ async function checkCreds() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: adminEmail, purpose: 'admin_login' })
             });
-            const otpData = await otpRes.json();
             if (otpData.success) {
-                document.getElementById('displayEmail').innerText = adminEmail;
-                document.getElementById('step1').style.display = 'none';
-                document.getElementById('step2').style.display = 'block';
-                showAlert(otpData.message, 'success');
-            } else {
+
+    document.getElementById('displayEmail').innerText =
+        adminEmail;
+
+    document.getElementById('step1').style.display = 'none';
+
+    document.getElementById('step2').style.display = 'block';
+
+    startOtpTimer();
+
+    showAlert(otpData.message, 'success');
+} else {
                 showAlert(otpData.message);
             }
         } else {
