@@ -1376,16 +1376,31 @@ def clear_notifications():
     mysql.connection.commit()
     return redirect('/notifications')
 
+from flask import jsonify
+
 @app.route('/check_notifications')
 def check_notifications():
+
     if 'user_id' not in session:
-        return {'count': 0}
+        return jsonify({'count': 0})
 
     cur = mysql.connection.cursor()
-    cur.execute("SELECT COUNT(*) FROM notifications WHERE user_id=%s AND status='Unread'",
-                (session['user_id'],))
+
+    cur.execute(
+        """
+        SELECT COUNT(*)
+        FROM notifications
+        WHERE user_id=%s
+        AND status='Unread'
+        """,
+        (session['user_id'],)
+    )
+
     count = cur.fetchone()[0]
-    return {'count': count}
+
+    cur.close()
+
+    return jsonify({'count': count})
 
 
 # ─── Typing & Online Status ──────────────────────────────────────────────────
@@ -1420,27 +1435,30 @@ def check_typing(uid):
 
 from datetime import datetime
 
+from time import time
+
 @app.before_request
 def update_last_seen():
+
     if 'user_id' not in session:
         return
 
-    last_update = session.get('last_seen_update')
+    last_update = session.get('last_seen_update', 0)
 
-    now = datetime.utcnow().timestamp()
-
-    if last_update and now - last_update < 60:
+    if time() - last_update < 60:
         return
 
     try:
         cur = mysql.connection.cursor()
+
         cur.execute(
             "UPDATE users SET last_seen=NOW() WHERE user_id=%s",
             (session['user_id'],)
         )
+
         mysql.connection.commit()
 
-        session['last_seen_update'] = now
+        session['last_seen_update'] = time()
 
     except Exception as e:
         print(e)
