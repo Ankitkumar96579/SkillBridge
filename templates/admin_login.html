@@ -73,6 +73,16 @@
                 <button type="button" onclick="verifyOTP()" id="verifyOtpBtn" class="btn w-100 mb-3" style="padding: 1rem; font-size: 1.1rem; border-radius: 0.5rem; background: var(--primary); color: white; font-weight: 600;">
                     Login <i class="fa fa-check-circle ms-2"></i>
                 </button>
+                <div class="text-center mt-3">
+    <button
+        type="button"
+        id="resendBtn"
+        onclick="resendAdminOTP()"
+        class="btn btn-link text-decoration-none">
+
+        Didn't get the code? Resend
+    </button>
+</div>
             </div>
         </div>
     </div>
@@ -84,6 +94,7 @@
 
 
 <script>
+    let adminEmail = "";
     let otpCountdown;
 
 function startOtpTimer() {
@@ -132,7 +143,6 @@ document.querySelectorAll('.password-toggle').forEach((button) => {
     });
 });
 
-let adminEmail = "";
 
 function showAlert(message, type = 'danger') {
     const container = document.getElementById('alertContainer');
@@ -149,55 +159,132 @@ function showAlert(message, type = 'danger') {
 }
 
 async function checkCreds() {
+
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
-    if (!username || !password) return showAlert("Please enter your credentials.");
+
+    if (!username || !password) {
+        return showAlert("Please enter your credentials.");
+    }
 
     const btn = document.getElementById('loginBtn');
+
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Checking...';
+    btn.innerHTML =
+        '<span class="spinner-border spinner-border-sm me-2"></span> Checking...';
 
     try {
+
         const res = await fetch('/auth/check_credentials', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username,
+                password
+            })
         });
+
         const data = await res.json();
+
         if (data.success) {
+
             adminEmail = data.email;
-            // Now send OTP
+
             const otpRes = await fetch('/auth/send_otp', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: adminEmail, purpose: 'admin_login' })
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: adminEmail,
+                    purpose: 'admin_login'
+                })
             });
+
+            const otpData = await otpRes.json();
+
             if (otpData.success) {
 
-    document.getElementById('displayEmail').innerText =
-        adminEmail;
+                document.getElementById('displayEmail').innerText =
+                    adminEmail;
 
-    document.getElementById('step1').style.display = 'none';
+                document.getElementById('step1').style.display = 'none';
 
-    document.getElementById('step2').style.display = 'block';
+                document.getElementById('step2').style.display = 'block';
 
-    startOtpTimer();
+                startOtpTimer();
 
-    showAlert(otpData.message, 'success');
-} else {
+                showAlert(
+                    otpData.message,
+                    'success'
+                );
+
+            } else {
+
                 showAlert(otpData.message);
             }
+
         } else {
+
             showAlert(data.message);
         }
+
     } catch (err) {
+
+        console.error(err);
+
         showAlert("Connection error.");
+
     } finally {
+
         btn.disabled = false;
-        btn.innerHTML = 'Next <i class="fa fa-arrow-right ms-2"></i>';
+
+        btn.innerHTML =
+            'Next <i class="fa fa-arrow-right ms-2"></i>';
     }
 }
+async function resendAdminOTP() {
 
+    if (!adminEmail) return;
+
+    try {
+
+        const otpRes = await fetch('/auth/send_otp', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: adminEmail,
+                purpose: 'admin_login'
+            })
+        });
+
+        const otpData = await otpRes.json();
+
+        if (otpData.success) {
+
+            startOtpTimer();
+
+            showAlert(
+                otpData.message,
+                'success'
+            );
+
+        } else {
+
+            showAlert(otpData.message);
+        }
+
+    } catch (err) {
+
+        console.error(err);
+
+        showAlert('Connection error.');
+    }
+}
 async function verifyOTP() {
     const otp = document.getElementById('otp').value;
     const btn = document.getElementById('verifyOtpBtn');
