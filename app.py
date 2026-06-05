@@ -262,6 +262,13 @@ def home():
 
     stats = cur.fetchone()
 
+    if not stats:
+        stats = {
+            'total_users': 0,
+            'total_sessions': 0,
+            'total_skills': 0
+        }
+
     return render_template(
         'home.html',
         total_users=stats['total_users'],
@@ -2025,18 +2032,19 @@ def api_get_messages(uid):
             except Exception:
                 pass
 
+    if messages:
     cur.execute(
         """
         UPDATE chat
         SET seen=TRUE
         WHERE receiver_id=%s
-          AND sender_id=%s
+        AND sender_id=%s
+        AND seen=FALSE
         """,
         (my_id, uid)
     )
 
     mysql.connection.commit()
-
     return jsonify({
         'messages': messages,
         'my_id': my_id
