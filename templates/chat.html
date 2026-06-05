@@ -704,14 +704,26 @@ function pollMessages() {
     });
 }
 
-setInterval(pollMessages, 3000);
+setInterval(pollMessages, 10000);
 
 /* === TYPING INDICATOR === */
-const msgInput = document.getElementById('msgInput');
+let typingSent = false;
+let typingTimeout;
+
 msgInput.addEventListener('input', function() {
-    fetch('/typing', {method: 'POST'});
+
+    if (!typingSent) {
+        fetch('/typing', { method: 'POST' });
+        typingSent = true;
+    }
+
     clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(() => fetch('/stop_typing', {method: 'POST'}), 2000);
+
+    typingTimeout = setTimeout(() => {
+        fetch('/stop_typing', { method: 'POST' });
+        typingSent = false;
+    }, 3000);
+
 });
 
 setInterval(function() {
@@ -722,7 +734,7 @@ setInterval(function() {
         if(data.typing) document.getElementById('onlineStatus').style.display = 'none';
         else document.getElementById('onlineStatus').style.display = 'inline';
     });
-}, 2000);
+}, 30000);
 
 /* === ONLINE STATUS === */
 function updateOnlineStatus() {
@@ -743,7 +755,7 @@ function updateOnlineStatus() {
     });
 }
 updateOnlineStatus();
-setInterval(updateOnlineStatus, 10000);
+setInterval(updateOnlineStatus, 30000);
 
 /* === LIGHTBOX === */
 function openLightbox(src) {
